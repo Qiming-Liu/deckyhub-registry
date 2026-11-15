@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-from build_release_index import KEEP, audit_index, build, fork_of, merge_ai_evidence, plugin_stats  # noqa: E402
+from build_release_index import KEEP, OLD_NOTES_LIMIT, keep_old_ratings, rating_entry, trim_notes, ai_evidence, audit_index, build, fork_of, keep_old_warnings, merge_ai_evidence, plugin_stats, store_downloads, store_entry  # noqa: E402
 from validate import rest_shape  # noqa: E402
 
 
@@ -21,6 +21,20 @@ def no_stats(entry, releases):
 
 
 class BuildReleaseIndexTests(unittest.TestCase):
+    def test_old_release_notes_are_cut_at_a_word_with_an_ellipsis_but_the_newest_of_each_channel_keeps_them(self):
+        long = "word " * 1000
+        self.assertEqual(trim_notes("short"), "short")
+        self.assertIsNone(trim_notes(None))
+        cut = trim_notes(long)
+        self.assertTrue(cut.endswith("word…") and len(cut) <= OLD_NOTES_LIMIT + 1)
+        self.assertEqual(len(trim_notes("x" * 5000)), OLD_NOTES_LIMIT + 1)  # no whitespace to cut at
+        releases = [{**release(f"v{day}", day, [("a.zip", 0)], prerelease=day == 4), "body": long} for day in (4, 3, 2, 1)]
+        index = build([entry()], lambda repo: releases, no_stats)
+        bodies = {item["tag_name"]: item["body"] for item in index["releases"]["o/a"]}
+        self.assertEqual(bodies["v4"], long)  # newest pre-release (newest overall)
+        self.assertEqual(bodies["v3"], long)  # newest stable
+        self.assertTrue(bodies["v2"].endswith("…") and bodies["v1"].endswith("…"))
+
     def test_curated_ai_evidence_survives_and_merges_without_duplicates(self):
         url = "https://github.com/mubaraknumann/unifideck/commit/76556441e52d3e66d6b931e02bd9cbeecc50e716"
         evidence = f"Commit co-author: Claude ({url})"
@@ -48,9 +62,9 @@ class BuildReleaseIndexTests(unittest.TestCase):
         history = [release(f"v{day}-beta", day, [("plugin.zip", 1)], prerelease=True) for day in range(10, 10 + KEEP + 3)]
         history += [release("v9-windows", 9, [("Setup.exe", 1)]), release("v8", 8, [("plugin.zip", 1)]), release("v7", 7, [("plugin.zip", 1)])]
         tags = [item["tag_name"] for item in build([entry()], lambda repo: history, no_stats)["releases"]["o/a"]]
-        # The KEEP newest with the plugin ZIP (all pre-releases here), then the newest
-        # stable one so the Stable channel still finds it; no ZIP-less or older ones.
-        self.assertEqual(tags, [f"v{day}-beta" for day in range(9 + KEEP + 3, 9 + 3, -1)] + ["v8"])
+        # The KEEP newest with the plugin ZIP (all pre-releases here), then the 3 newest
+        # stable ones so the Stable channel and its scans stay; no ZIP-less or older ones.
+        self.assertEqual(tags, [f"v{day}-beta" for day in range(9 + KEEP + 3, 9 + 3, -1)] + ["v8", "v7"])
         stable = [release(f"v{day}", day, [("plugin.zip", 1)]) for day in range(1, KEEP + 4)]
         self.assertEqual(len(build([entry()], lambda repo: stable, no_stats)["releases"]["o/a"]), KEEP)
         # Nothing installable: an empty list, which DeckyHub reads as "no release" without asking GitHub.
@@ -77,6 +91,13 @@ class BuildReleaseIndexTests(unittest.TestCase):
         # The stable release's ZIP is the one read, not the newer pre-release's.
         self.assertEqual(len(seen), 1)
 
+    def test_stats_carry_the_decky_stores_downloads_matched_by_name(self):
+        found = store_downloads([[{"name": "Decky Framegen", "downloads": 5}, {"name": "Other", "downloads": 1}], [{"name": "decky framegen", "downloads": 9}, {"name": "x"}]])
+        self.assertEqual(found, {"decky framegen": 9, "other": 1, "x": 0})
+        entry = {"name": "Framegen", "detect": {"names": ["Decky-Framegen", "Decky Framegen"]}}
+        self.assertEqual(store_entry(entry, found), {"downloads": 9})
+        self.assertIsNone(store_entry({"name": "Nope", "detect": {"names": []}}, found))
+
     def test_stats_name_what_a_fork_was_forked_from(self):
         history = [release("v1", 1, [("plugin.zip", 1)])]
         self.assertEqual(plugin_stats(entry(), history, stars=lambda repo: 0, manifest=lambda asset: {}, fork="orig/a")["fork"], "orig/a")
@@ -89,6 +110,21 @@ class BuildReleaseIndexTests(unittest.TestCase):
         self.assertEqual(fork_of({"fork": True, "parent": {"full_name": "orig/a"}}), "orig/a")
         self.assertIsNone(fork_of({"fork": False, "parent": None}))
         self.assertIsNone(fork_of({"fork": True, "parent": None}))
+
+    def test_a_project_formed_from_an_ai_made_one_inherits_its_evidence(self):
+        nothing = lambda name: None  # noqa: E731
+        parent = {"full_name": "Orig/A", "ai": ["CLAUDE.md", "AGENTS.md"]}
+        # A fork that deleted the files is still marked; one it kept isn't listed twice.
+        self.assertEqual(ai_evidence(entry(), {"fork": True, "ai": [], "parent": parent}, nothing), ["From Orig/A: CLAUDE.md", "From Orig/A: AGENTS.md"])
+        self.assertEqual(ai_evidence(entry(), {"fork": True, "ai": ["CLAUDE.md"], "parent": parent}, nothing), ["CLAUDE.md", "From Orig/A: AGENTS.md"])
+        # Not a fork (or a copy of a template, which fork is False for): only its own.
+        self.assertEqual(ai_evidence(entry(), {"fork": False, "ai": ["CLAUDE.md"], "parent": parent}, nothing), ["CLAUDE.md"])
+        self.assertEqual(ai_evidence(entry(), {"fork": False, "ai": [], "parent": None}, nothing), [])
+        # The entry's upstream wins over GitHub's parent, and is looked up when it isn't that parent.
+        derived = {**entry(), "upstream": "up/stream"}
+        self.assertEqual(ai_evidence(derived, {"fork": True, "ai": [], "parent": parent}, {"up/stream": ["GEMINI.md"]}.get), ["From up/stream: GEMINI.md"])
+        self.assertEqual(ai_evidence({**entry(), "upstream": "orig/a"}, {"fork": False, "ai": [], "parent": parent}, nothing), ["From orig/a: CLAUDE.md", "From orig/a: AGENTS.md"])
+        self.assertEqual(ai_evidence(derived, {"fork": False, "ai": [], "parent": None}, nothing), [])
 
     def test_stats_tell_no_root_from_unknown(self):
         history = [release("v1", 1, [("plugin.zip", 1)])]
@@ -117,6 +153,32 @@ class BuildReleaseIndexTests(unittest.TestCase):
         self.assertEqual(stats["warnings"], ["private-data", "vulnerable"])
         self.assertEqual(stats["prereleaseWarnings"], ["blocked", "not-in-source"])
         self.assertNotIn("warnings", plugin_stats(entry(), [release("v9", 9, [("plugin.zip", 1)])], stars=lambda repo: 0, manifest=lambda asset: {}, audits=audits))
+
+    def test_an_audit_record_of_another_shape_is_skipped(self):
+        good = {"repository": "https://github.com/o/a", "tag": "v1", "classification": "BLOCK"}
+        self.assertEqual(audit_index({"releases": [{"tag": "v0"}, {"repository": None, "tag": "v0", "classification": "PASS"}, good]}), {("o/a", "v1"): ["blocked"]})
+
+    def test_without_the_audit_plugins_keep_their_published_warnings(self):
+        stats = {"o/a": {"downloads": 1}, "o/b": {"downloads": 2}, "o/new": {"downloads": 3}}
+        keep_old_warnings(stats, {"o/a": {"warnings": ["blocked"], "prereleaseWarnings": ["obfuscated"], "downloads": 0}, "o/b": {"warnings": "odd"}, "o/gone": {"warnings": ["blocked"]}})
+        self.assertEqual(stats, {"o/a": {"downloads": 1, "warnings": ["blocked"], "prereleaseWarnings": ["obfuscated"]}, "o/b": {"downloads": 2}, "o/new": {"downloads": 3}})
+
+    def test_a_plugins_rating_keeps_only_sane_numbers_and_is_missing_when_nobody_rated(self):
+        found = {"o/a": {"rated": 12, "average": 4.26, "works": 9, "broken": 1, "easy": 8, "hard": 0, "extra": "x"}, "o/b": {"works": 3}, "o/c": {"rated": 0, "average": 9},
+                 "o/d": {"rated": True, "average": "5"}, "o/e": "nope"}
+        self.assertEqual(rating_entry(found, "O/A"), {"rated": 12, "average": 4.3, "works": 9, "broken": 1, "easy": 8})
+        self.assertEqual(rating_entry(found, "o/b"), {"works": 3})
+        for repo in ("o/c", "o/d", "o/e", "o/missing"):
+            self.assertIsNone(rating_entry(found, repo), repo)
+        self.assertIsNone(rating_entry({"o/f": {"rated": 5, "average": 6}}, "o/f").get("average"))
+
+    def test_the_rating_is_in_the_stats_and_without_the_worker_plugins_keep_the_published_one(self):
+        rated = plugin_stats(entry(), [release("v1", 1, [("a.zip", 1)])], stars=lambda repo: 0, manifest=lambda asset: {}, rating={"rated": 5, "average": 4.0})
+        self.assertEqual(rated["rating"], {"rated": 5, "average": 4.0})
+        self.assertNotIn("rating", plugin_stats(entry(), [release("v1", 1, [("a.zip", 1)])], stars=lambda repo: 0, manifest=lambda asset: {}))
+        stats = {"o/a": {"downloads": 1}, "o/b": {"downloads": 2}}
+        keep_old_ratings(stats, {"o/a": {"rating": {"rated": 7}}, "o/b": {"rating": "bad"}})
+        self.assertEqual(stats, {"o/a": {"downloads": 1, "rating": {"rated": 7}}, "o/b": {"downloads": 2}})
 
     def test_graphql_releases_take_the_rest_shape(self):
         node = {"tagName": "v1", "name": "One", "isDraft": False, "isPrerelease": True, "publishedAt": "2026-01-01T00:00:00Z", "url": "u", "description": "notes",

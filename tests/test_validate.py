@@ -1,6 +1,7 @@
 import io
 import json
 import sys
+import tempfile
 import unittest
 import zipfile
 from unittest import mock
@@ -71,6 +72,45 @@ class PluginVersionTests(unittest.TestCase):
         self.assertEqual(validate.plugin_version({"version": "1.0"}, {"version": "2.0"}), "1.0")
         self.assertIsNone(validate.plugin_version(None, {}))
 
+    def test_the_filter_error_names_the_word_that_tells_the_zips_apart_if_there_is_one(self):
+        names = lambda *items: [{"name": name} for name in items]  # noqa: E731
+        self.assertEqual(validate.filter_hint(names("T-v1.7.3_Installer.zip", "T-v1.7.3_Project.zip")), "; to pick one, include 'installer' or 'project'")
+        self.assertEqual(validate.filter_hint(names("deck-1.4.7.zip", "deck.zip")), "")
+        self.assertEqual(validate.filter_hint(names("a.zip")), "")
+
+    def test_a_zip_read_before_is_not_downloaded_again_and_the_saved_cache_holds_only_what_was_used(self):
+        asset = {"browser_download_url": "https://x/a.zip", "size": 1, "digest": "sha256:ab"}
+        key = "https://x/a.zip|1|sha256:ab"
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "cache.json"
+            path.write_text(json.dumps({key: [{"name": "A"}, {"version": "1"}], "https://x/old.zip|1|": [None, {}]}), encoding="utf-8")
+            with mock.patch.dict(validate._cached, clear=True), mock.patch.dict(validate._used, clear=True):
+                validate.load_zip_cache(str(path))
+                with mock.patch.object(validate, "_read_zip_plugin_files", side_effect=AssertionError("downloaded")):
+                    self.assertEqual(validate.zip_plugin_files(asset), ({"name": "A"}, {"version": "1"}))
+                validate.save_zip_cache(str(path))
+            self.assertEqual(list(json.loads(path.read_text(encoding="utf-8"))), [key])
+
+    def test_a_missing_or_broken_cache_reads_everything_again(self):
+        with mock.patch.dict(validate._cached, clear=True):
+            validate.load_zip_cache(None)
+            validate.load_zip_cache("no/such/file.json")
+            self.assertEqual(validate._cached, {})
+
+    def test_an_oversized_plugin_json_is_refused_unread_and_an_oversized_package_json_is_skipped(self):
+        def files(plugin, package):
+            data = io.BytesIO()
+            with zipfile.ZipFile(data, "w", zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("A/plugin.json", plugin)
+                archive.writestr("A/package.json", package)
+            with mock.patch.object(validate, "RangedFile", lambda url, size: io.BytesIO(data.getvalue())):
+                return validate.zip_plugin_files({"browser_download_url": "https://x/a.zip", "size": 1})
+
+        bomb = " " * (validate.MAX_MANIFEST_BYTES + 1)
+        with self.assertRaises(ValueError):
+            files(bomb, "{}")
+        self.assertEqual(files('{"name": "A"}', bomb), ({"name": "A"}, {}))
+
     def test_a_tag_naming_another_version_number_is_a_mismatch(self):
         for tag, version in [("v0.45", "0.4.5"), ("v1.0.9", "1.0.8"), ("v0.2.0", "0.0.1")]:
             self.assertTrue(validate.version_mismatch(tag, version), tag)
@@ -97,6 +137,51 @@ class AiFilesTests(unittest.TestCase):
     def test_readme_wording_about_ai_features_or_a_denial_does_not_count(self):
         for text in ["Not vibe-coded!", "No AI was used, nor built with AI.", "Turns your screenshots into AI-generated wallpapers.", "Built with React and aiohttp.", "Uses the Gemini API.", "Made by aidan", None]:
             self.assertIsNone(validate.ai_readme(text), text)
+
+    def test_more_assistants_files_and_readme_wording_count(self):
+        result = {"root": {"entries": [{"name": name} for name in (".mcp.json", ".aiderignore", ".junie", "opencode.json", "src", ".airc")]},
+                  "dotGithub": {"entries": [{"name": "instructions"}, {"name": "workflows"}]},
+                  "readmeTitle": {"text": "Pair-programmed with Claude Code."}}
+        self.assertEqual(validate.ai_files(result), [".aiderignore", ".github/instructions", ".junie", ".mcp.json", 'README: "Pair-programmed with Claude Code"', "opencode.json"])
+        for text in ["AI-assisted development.", "Co-written with ChatGPT", "🤖 Generated with [Claude Code](https://claude.com/claude-code)", "Built with Windsurf."]:
+            self.assertIsNotNone(validate.ai_readme(text), text)
+        for text in ["Translation assisted by AI models.", "AI-assisted upscaling for games.", "Co-authored by Devin Smith"]:
+            self.assertIsNone(validate.ai_readme(text), text)
+
+    def test_an_ai_disclaimer_saying_ai_was_used_to_make_it_counts(self):
+        for text in ["## AI disclaimer\nAI was used in the making of this project.", "Claude has been used for the development of this plugin.", "LLMs were heavily used to write most of it."]:
+            self.assertIsNotNone(validate.ai_readme(text), text)
+        for text in ["No AI was used in the making of this.", "AI was never used in development.", "AI is used to create wallpapers.", "Gemini is used for the images."]:
+            self.assertIsNone(validate.ai_readme(text), text)
+
+    def test_store_flag_must_be_true(self):
+        app = {"id": "a", "repo": "o/a", "detect": {"names": ["A"]}}
+        self.assertEqual(validate.static_errors([{**app, "store": True}]), [])
+        self.assertTrue(validate.static_errors([{**app, "store": "yes"}]))
+
+    def test_ai_tools_as_commit_authors_and_in_commit_notes(self):
+        def commit(number, message="Fix", name="Dev", email="dev@example.com"):
+            return {"message": message, "url": f"https://github.com/o/a/commit/{number}", "author": {"name": name, "email": email}}
+
+        result = {"recentHistory": {"target": {"history": {"nodes": [
+            commit(1, name="copilot-swe-agent[bot]", email="198982749+Copilot@users.noreply.github.com"),
+            commit(2, "Feature\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>"),
+            commit(3, "Feature\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)"),
+            commit(4, "Feature\n\nCo-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"),
+            commit(5, name="google-labs-jules[bot]", email="161369871+google-labs-jules[bot]@users.noreply.github.com"),
+            commit(6, "aider: tidy imports", name="Dev (aider)"),
+            commit(7, "Feature\n\nCo-authored-by: aider (gpt-4o) <aider@aider.chat>"),
+            # People: a tool's name with someone's own address, and a tool only mentioned.
+            commit(8, "Thanks Devin\n\nCo-authored-by: Devin Smith <devin@example.com>", name="Amp", email="amp@example.com"),
+            commit(9, "Add Cursor theme and Claude Code docs"),
+        ]}}}}
+        self.assertEqual(validate.ai_files(result), [
+            "Commit author: GitHub Copilot (https://github.com/o/a/commit/1)",
+            "Commit author: Jules (https://github.com/o/a/commit/5)",
+            "Commit co-author: Cursor (https://github.com/o/a/commit/2)",
+            "Commit note: Aider (https://github.com/o/a/commit/6)",
+            "Commit note: Claude (https://github.com/o/a/commit/3)",
+        ])
 
     def test_a_repo_without_them_or_without_a_tree_has_none(self):
         self.assertEqual(validate.ai_files({"root": {"entries": [{"name": "README.md"}]}, "dotGithub": None}), [])

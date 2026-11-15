@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import virus_scan  # noqa: E402
-from virus_scan import Yara, badges, budget, channel_assets, parse_clamscan, parse_yara, plan, plugin_summary, report_of, rules_version, scan, unpack, wanted_assets  # noqa: E402
+from virus_scan import AUDIT_LIST_CAP, Yara, brief_audit, badges, budget, channel_assets, parse_clamscan, parse_yara, plan, plugin_summary, report_of, rules_version, scan, unpack, wanted_assets  # noqa: E402
 
 TODAY = datetime(2026, 11, 2, tzinfo=timezone.utc)
 YARA_OK = {"result": "clean", "scannedAt": "2026-11-01T00:00:00Z"}
@@ -84,7 +84,19 @@ class PlanTests(unittest.TestCase):
         old = {url: {**report, "yara": YARA_OK, "audit": {"result": "complete", "version": 2}} for url, report in old.items()}
         kept, todo = plan(wanted, old, TODAY)
         self.assertEqual(set(kept), {"same", "partial", "old", "older", "nodigest"})
-        self.assertEqual(todo, ["new", "changed", "failed", "partial", "older", "old"])
+        self.assertEqual(todo, ["new", "changed", "failed", "older", "old", "partial"])
+
+    def test_a_zip_clamav_gives_up_on_for_its_limits_is_tried_once_a_day_not_every_run(self):
+        wanted = {url: {"sha256": "aa", "size": 1} for url in ("today", "yesterday", "other", "new")}
+        base = {"sha256": "aa", "result": "incomplete", "found": ["Heuristics.Limits.Exceeded.MaxScanTime"], "yara": YARA_OK, "audit": {"result": "complete", "version": 2}}
+        old = {
+            "today": {**base, "scannedAt": "2026-11-14T00:00:00Z"},
+            "yesterday": {**base, "scannedAt": "2026-11-12T00:00:00Z"},
+            "other": {**base, "found": ["Win.Test.EICAR"], "scannedAt": "2026-11-14T00:00:00Z"},
+        }
+        kept, todo = plan(wanted, old, datetime(2026, 11, 14, 12, tzinfo=timezone.utc))
+        self.assertEqual(set(kept), {"today", "yesterday", "other"})
+        self.assertEqual(todo, ["other", "new", "yesterday"])
 
     def test_a_report_yara_hasnt_scanned_or_couldnt_is_scanned_again_and_kept_meanwhile(self):
         wanted = {url: {"sha256": "aa", "size": 1} for url in ("clam-only", "yara-failed", "yara-partial", "both")}
@@ -252,9 +264,29 @@ class PluginSummaryTests(unittest.TestCase):
                 "stable": {"tag": "v1", "file": "a1.zip", "sha256": "aa", "clamav": {"result": "clean", "scannedAt": "2026-11-01T00:00:00Z"}, "yara": {"result": "infected", "found": ["Linux_Test"], "scannedAt": "2026-11-01T00:00:00Z"}},
                 # Not scanned yet: no verdicts, the index's digest still names the file.
                 "prerelease": {"tag": "v2-rc", "file": "a2.zip", "sha256": "bb"},
+                # The newest 3 stable then the newest 3 pre-releases, each with its own report.
+                "releases": [
+                    {"tag": "v1", "file": "a1.zip", "sha256": "aa", "clamav": {"result": "clean", "scannedAt": "2026-11-01T00:00:00Z"}, "yara": {"result": "infected", "found": ["Linux_Test"], "scannedAt": "2026-11-01T00:00:00Z"}, "prerelease": False},
+                    {"tag": "v2-rc", "file": "a2.zip", "sha256": "bb", "prerelease": True},
+                ],
             },
-            "o/b": {"stable": {"tag": "v3", "file": "b.zip", "sha256": "cc", "clamav": {"result": "incomplete", "found": ["Heuristics.Limits.Exceeded.MaxFileSize"], "scannedAt": "2026-11-01T00:00:00Z"}, "yara": {"result": "error", "reason": "YARA's rules couldn't be downloaded", "scannedAt": "2026-11-01T00:00:00Z"}}},
+            "o/b": {"stable": {"tag": "v3", "file": "b.zip", "sha256": "cc", "clamav": {"result": "incomplete", "found": ["Heuristics.Limits.Exceeded.MaxFileSize"], "scannedAt": "2026-11-01T00:00:00Z"}, "yara": {"result": "error", "reason": "YARA's rules couldn't be downloaded", "scannedAt": "2026-11-01T00:00:00Z"}},
+                    "releases": [{"tag": "v3", "file": "b.zip", "sha256": "cc", "clamav": {"result": "incomplete", "found": ["Heuristics.Limits.Exceeded.MaxFileSize"], "scannedAt": "2026-11-01T00:00:00Z"}, "yara": {"result": "error", "reason": "YARA's rules couldn't be downloaded", "scannedAt": "2026-11-01T00:00:00Z"}, "prerelease": False}]},
         })
+
+
+class BriefAuditTests(unittest.TestCase):
+    def test_long_lists_are_cut_everywhere_and_counted_and_short_audits_are_untouched(self):
+        short = {"result": "complete", "root": False, "findings": [{"rule": "x"}], "dependencies": {"packages": [], "issues": ["a"]}}
+        self.assertEqual(brief_audit(short), short)
+        n = AUDIT_LIST_CAP + 5
+        long = {"result": "incomplete", "findings": list(range(n)), "source": {"result": "error", "findings": list(range(n))}, "dependencies": {"packages": list(range(n)), "binaries": [], "result": "complete"}}
+        brief = brief_audit(long)
+        self.assertEqual(brief["findings"], list(range(AUDIT_LIST_CAP)))
+        self.assertEqual(brief["source"]["findings"], list(range(AUDIT_LIST_CAP)))
+        self.assertEqual(brief["dependencies"], {"packages": list(range(AUDIT_LIST_CAP)), "binaries": [], "result": "complete"})
+        self.assertEqual(brief["omitted"], {"findings": 5, "source.findings": 5, "dependencies.packages": 5})
+        self.assertEqual(len(long["findings"]), n)  # the input (scans.json's report) is not changed
 
 
 class IndependentAuditTests(unittest.TestCase):

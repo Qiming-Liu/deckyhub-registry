@@ -15,10 +15,12 @@ import json
 import os
 import re
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -48,6 +50,8 @@ def static_errors(apps: list[dict]) -> list[str]:
         upstream = app.get("upstream")
         if upstream is not None and (not isinstance(upstream, str) or not re.fullmatch(r"[\w.-]+/[\w.-]+", upstream) or upstream.casefold() == app["repo"].casefold()):
             errors.append(f"{app['id']}: upstream {upstream!r} must be another repo's owner/name")
+        if "store" in app and app["store"] is not True:
+            errors.append(f"{app['id']}: store must be true when present (the plugin is installed from the Decky store, not from GitHub)")
     return errors
 
 
@@ -150,13 +154,54 @@ class RangedFile(io.RawIOBase):
         return data
 
 
+# What was read from each ZIP, kept between runs when VALIDATE_CACHE names a file (CI keeps it):
+# a release's ZIP never changes, so only new releases cost a download. Keyed by what identifies
+# the file (URL, size, digest); a run saves just what it used, so the file doesn't grow.
+_cached: dict[str, list] = {}
+_used: dict[str, list] = {}
+_lock = threading.Lock()
+_reads = {"cached": 0, "downloaded": 0}
+
+
+def load_zip_cache(path: str | None) -> None:
+    try:
+        _cached.update(json.loads(Path(path).read_text(encoding="utf-8")) if path else {})
+    except (OSError, ValueError):
+        pass  # no cache yet, or an unreadable one: everything is read again
+
+
+def save_zip_cache(path: str | None) -> None:
+    if path:
+        Path(path).write_text(json.dumps(_used, separators=(",", ":")), encoding="utf-8")
+
+
 def zip_plugin_files(asset: dict) -> tuple[dict | None, dict]:
     """The ZIP's top-level plugin.json, which Decky Loader reads once it's installed, and
     the package.json beside it ({} when there's none or it isn't a JSON object)."""
-    try:
-        return _read_zip_plugin_files(asset)
-    except zipfile.BadZipFile:
-        return _read_zip_plugin_files(asset)
+    key = f"{asset['browser_download_url']}|{asset.get('size')}|{asset.get('digest') or ''}"
+    with _lock:
+        hit = _cached.get(key)
+        _reads["downloaded" if hit is None else "cached"] += 1
+    if hit is None:
+        try:
+            hit = list(_read_zip_plugin_files(asset))
+        except zipfile.BadZipFile:
+            hit = list(_read_zip_plugin_files(asset))
+    with _lock:
+        _used[key] = hit
+    return hit[0], hit[1]
+
+
+# A real plugin.json or package.json is a few KB. zipfile reads no more than the size the
+# ZIP states, so refusing a bigger one stops a ZIP bomb from using up the runner's memory.
+MAX_MANIFEST_BYTES = 1024 * 1024
+
+
+def _read_json(archive: zipfile.ZipFile, name: str):
+    """Raises KeyError when the ZIP has no such file, ValueError when it's too big or not JSON."""
+    if archive.getinfo(name).file_size > MAX_MANIFEST_BYTES:
+        raise ValueError(f"{name} in the ZIP is larger than {MAX_MANIFEST_BYTES} bytes")
+    return json.loads(archive.read(name))
 
 
 def _read_zip_plugin_files(asset: dict) -> tuple[dict | None, dict]:
@@ -174,10 +219,10 @@ def _read_zip_plugin_files(asset: dict) -> tuple[dict | None, dict]:
             names = ", ".join(repr(entry.filename) for entry in candidates)
             raise ValueError(f"ambiguous plugin.json manifests in ZIP: {names}")
         try:
-            package = json.loads(archive.read(candidates[0].filename.removesuffix("plugin.json") + "package.json"))
+            package = _read_json(archive, candidates[0].filename.removesuffix("plugin.json") + "package.json")
         except (KeyError, ValueError):
             package = {}
-        return json.loads(archive.read(candidates[0])), package if isinstance(package, dict) else {}
+        return _read_json(archive, candidates[0].filename), package if isinstance(package, dict) else {}
 
 
 def zip_plugin_manifest(asset: dict) -> dict | None:
@@ -216,6 +261,16 @@ def version_mismatch(tag: str, version: str | None) -> bool:
     return a is not None and b is not None and a != b
 
 
+def filter_hint(assets: list[dict]) -> str:
+    """When the ZIPs a filter matches differ by a word ('Installer' / 'Project'), the include
+    words that would pick each one; nothing when they differ only by digits (a version)."""
+    if len(assets) < 2:
+        return ""
+    words = [set(re.findall(r"[a-z]+", asset["name"].lower())) for asset in assets]
+    picks = [sorted(mine - set().union(*(other for other in words if other is not mine))) for mine in words]
+    return "; to pick one, include " + " or ".join(f"{pick[0]!r}" for pick in picks) if all(picks) else ""
+
+
 def github_problems(app: dict, repo: dict | None = None) -> tuple[list[str], list[str]]:
     """repo: the entry's fetch_github() answer, looked up here when not given."""
     errors, warnings = [], []
@@ -228,6 +283,8 @@ def github_problems(app: dict, repo: dict | None = None) -> tuple[list[str], lis
         warnings.append(f"{label}: {app['repo']} was renamed to {repo['full_name']}; update repo")
     if repo.get("archived"):
         warnings.append(f"{label}: {repo['full_name']} is archived")
+    if app.get("store"):
+        return errors, warnings  # installed from the Decky store: its GitHub releases aren't offered, so they aren't checked
     channels = channel_releases(app, repo["releases"])
     if not channels["prerelease"]:
         where = f" matching releaseTagInclude {app.get('releaseTagInclude')!r}" if app.get("releaseTagInclude") else ""
@@ -242,7 +299,7 @@ def github_problems(app: dict, repo: dict | None = None) -> tuple[list[str], lis
         where = f"{label} {release['tag_name']} ({channel})"
         assets = matching_assets(app, release)
         if len(assets) != 1:
-            errors.append(f"{where}: asset filter matches {len(assets)} ZIPs {[asset['name'] for asset in assets]}, needs exactly 1")
+            errors.append(f"{where}: asset filter matches {len(assets)} ZIPs {[asset['name'] for asset in assets]}, needs exactly 1{filter_hint(assets)}")
             continue
         if not assets[0].get("digest"):
             warnings.append(f"{where}: {assets[0]['name']} has no SHA-256 digest; Decky installs it unverified")
@@ -264,18 +321,48 @@ BATCH = 10
 # Files and folders that set a repo up for an AI coding assistant (Claude Code, Codex and
 # other AGENTS.md readers, Gemini, Cursor, Windsurf, Cline, Roo, Aider, Kiro, Copilot):
 # at the repo's root, or in .github. Lowercase; matched case-insensitively.
-AI_FILES = {"claude.md", "agents.md", "agent.md", "gemini.md", ".claude", ".codex", ".gemini", ".cursor", ".cursorrules", ".windsurf", ".windsurfrules", ".clinerules", ".roo", ".roomodes", ".aider.conf.yml", ".kiro"}
-AI_GITHUB_FILES = {"copilot-instructions.md"}
+AI_FILES = {"claude.md", "claude.local.md", "agents.md", "agents.override.md", "agent.md", "gemini.md", ".claude", ".claude-plugin", ".mcp.json", ".codex", ".gemini",
+            ".cursor", ".cursorrules", ".cursorignore", ".windsurf", ".windsurfrules", ".clinerules", ".roo", ".roomodes", ".kilocode", ".kiro", ".junie", ".continue",
+            ".augment", ".amazonq", ".opencode", "opencode.json", ".trae"}
+# Aider's settings, ignore list and chat logs (.aider.conf.yml, .aiderignore, .aider.chat.history.md).
+AI_FILE_PREFIXES = (".aider",)
+# In .github: Copilot's instructions, and its per-path instructions, prompts, chat modes and agents.
+AI_GITHUB_FILES = {"copilot-instructions.md", "instructions", "prompts", "chatmodes", "agents"}
+# How many of the default branch's newest commits are read for AI authors and co-authors.
+HISTORY = 100
+# AI tools as commit authors or co-authors: (tool, how the name starts, the whole email), both
+# lowercase. The email is what tells a tool from a person who happens to be called Amp or Cursor.
+GITHUB_BOT = r"(?:\d+\+)?%s@users\.noreply\.github\.com"
+AI_IDENTITIES = [(tool, re.compile(names), re.compile(emails)) for tool, names, emails in (
+    ("Claude", r"claude\b", r"noreply@anthropic\.com|noreply@claude\.ai|" + GITHUB_BOT % r"claude\[bot\]"),
+    ("Codex", r"(?:openai\s+)?codex\b|chatgpt-codex-connector\[bot\]", r"noreply@openai\.com|" + GITHUB_BOT % r"(?:codex|chatgpt-codex-connector\[bot\])"),
+    ("GitHub Copilot", r"(?:github\s+)?copilot\b|copilot-swe-agent\[bot\]", GITHUB_BOT % r"(?:copilot|copilot-swe-agent\[bot\])"),
+    ("Cursor", r"cursor\b|cursoragent\b", r"cursoragent@cursor\.com"),
+    ("Aider", r"aider\b", r"[\w.+-]+@aider\.chat"),
+    ("Devin", r"devin\b|devin-ai-integration\[bot\]", GITHUB_BOT % r"devin-ai-integration\[bot\]"),
+    ("Jules", r"google-labs-jules\[bot\]|jules\b", GITHUB_BOT % r"google-labs-jules\[bot\]"),
+    ("Amp", r"amp\b", r"amp@ampcode\.com"),
+)]
+# The line a tool adds to the commits it writes, when it leaves no co-author trailer.
+AI_COMMIT_NOTES = [
+    ("Claude", re.compile(r"Generated with \[?Claude Code\b", re.IGNORECASE)),
+    ("Aider", re.compile(r"^aider: ", re.MULTILINE)),
+]
 # README wording that says the plugin itself is made with AI. Not "AI-generated" alone: a
 # plugin can make AI images. A match right after a negation ("not vibe-coded") doesn't count.
-AI_TOOLS = r"(?:ai|a\.i\.|claude(?: code)?|chat ?gpt|gpt-?\d\S*|copilot|gemini|cursor|codex|llms?|an? llm|an? ai(?: assistant| agent| tools?)?|ai (?:assistants?|agents?|tools?))"
+AI_TOOLS = r"(?:ai|a\.i\.|claude(?: code)?|chat ?gpt|gpt-?\d\S*|copilot|gemini|cursor|codex|windsurf|aider|cline|llms?|an? llm|an? ai(?: assistant| agent| tools?)?|ai (?:assistants?|agents?|tools?))"
 AI_README = re.compile("|".join([
+    r"\bai[- ]assisted\s+(?:development|coding|programming)\b",
+    r"\b(?:co-?written|co-?authored|pair[- ]programmed)\s+(?:by|with)\s+" + AI_TOOLS + r"(?![\w-])",
+    r"\bgenerated with \[?claude code\b",
     r"\bvibe[- ]?cod(?:ed|ing)\b",
     r"\b100\s*%\s*(?:ai|vibe)\b",
     r"\bai[- ](?:generated|written|assisted|made)\s+(?:code|plugin|project)\b",
     r"\b(?:code|plugin|project|it|this)\s+(?:is|was|has been)\s+(?:\w+\s+){0,2}(?:ai[- ](?:generated|written|assisted|made)|generated by ai|written by ai)\b",
     r"\b(?:built|made|written|developed|created|coded|generated|programmed)\s+(?:\w+\s+){0,2}(?:with|by|using|in)\s+(?:the\s+help\s+of\s+|help\s+from\s+)?" + AI_TOOLS + r"(?![\w-])",
     r"\bwith the help of " + AI_TOOLS + r"(?![\w-])",
+    # "AI was used in the making of this project" (a disclaimer section): the tool, a short stretch, then "was used" for making it.
+    r"\b" + AI_TOOLS + r"\b[^.\n]{0,40}?\b(?:was|were|has been|have been|is|are)\s+(?!not\b|never\b)(?:\w+\s+){0,2}used\s+(?:(?:in|for|during)\s+(?:the\s+|its\s+|this\s+)?(?:\w+\s+)?(?:making|development|creation|building|writing|coding)|to\s+(?:help\s+)?(?:write|build|develop|code)\s+(?:this|the|it|most|much|parts)\b)",
 ]), re.IGNORECASE)
 NEGATION = re.compile(r"\b(?:no|not|without|never|zero|isn't|wasn't|nothing)\b[^.!?\n]{0,25}$", re.IGNORECASE)
 TREE = "... on Tree { entries { name } }"
@@ -331,11 +418,15 @@ def rest_shape(node: dict) -> dict:
 def releases_query(repo: str, first: int, after: str | None = None) -> str:
     owner, name = repo.split("/")
     cursor = f", after: {json.dumps(after)}" if after else ""
+    # What ai_files() reads. Asked of the repo and of the repo it was forked from: a fork of
+    # an AI-made project is AI-made too, even after it deleted the files or rewrote the README.
+    ai_signs = (f"root: object(expression: \"HEAD:\") {{ {TREE} }} dotGithub: object(expression: \"HEAD:.github\") {{ {TREE} }} "
+                f"readme: object(expression: \"HEAD:README.md\") {{ ... on Blob {{ text }} }} readmeLower: object(expression: \"HEAD:readme.md\") {{ ... on Blob {{ text }} }} "
+                f"readmeTitle: object(expression: \"HEAD:Readme.md\") {{ ... on Blob {{ text }} }} "
+                f"recentHistory: defaultBranchRef {{ target {{ ... on Commit {{ history(first: {HISTORY}) {{ nodes {{ message url author {{ name email }} }} }} }} }} }} ")
     return (f"repository(owner: {json.dumps(owner)}, name: {json.dumps(name)}) {{ nameWithOwner name description isArchived isFork stargazerCount "
-            f"root: object(expression: \"HEAD:\") {{ {TREE} }} dotGithub: object(expression: \"HEAD:.github\") {{ {TREE} }} "
-            f"readme: object(expression: \"HEAD:README.md\") {{ ... on Blob {{ text }} }} readmeLower: object(expression: \"HEAD:readme.md\") {{ ... on Blob {{ text }} }} "
-            f"recentHistory: defaultBranchRef {{ target {{ ... on Commit {{ history(first: 30) {{ nodes {{ message url }} }} }} }} }} "
-            f"parent {{ nameWithOwner isArchived isTemplate releases(first: 1, orderBy: {{field: CREATED_AT, direction: DESC}}) {{ nodes {{ publishedAt }} }} }} "
+            f"{ai_signs}"
+            f"parent {{ nameWithOwner isArchived isTemplate {ai_signs}releases(first: 1, orderBy: {{field: CREATED_AT, direction: DESC}}) {{ nodes {{ publishedAt }} }} }} "
             f"releases(first: {first}{cursor}, orderBy: {{field: CREATED_AT, direction: DESC}}) {{ pageInfo {{ hasNextPage endCursor }} nodes {{ {RELEASE_FIELDS} }} }} }}")
 
 
@@ -347,38 +438,48 @@ def ai_readme(text: str | None) -> str | None:
     return None
 
 
+def ai_identity(name: str | None, email: str | None) -> str | None:
+    """The AI tool (AI_IDENTITIES) a commit author or co-author is, or None for a person."""
+    name, email = (name or "").strip().casefold(), (email or "").strip().casefold()
+    return next((tool for tool, names, emails in AI_IDENTITIES if names.match(name) and emails.fullmatch(email)), None)
+
+
 def ai_files(result: dict) -> list[str]:
-    """The AI-assistant files (AI_FILES) on the repo's default branch, as named there, and
-    'README: "<phrase>"' when its README says it's made with AI (ai_readme)."""
+    """The signs a repo is developed with AI help: the AI-assistant files (AI_FILES) on its
+    default branch, as named there; 'README: "<phrase>"' when its README says it's made with
+    AI (ai_readme); and, once per tool, the newest of its last HISTORY commits an AI tool
+    wrote ('Commit author'), co-wrote ('Commit co-author') or signed ('Commit note')."""
     entries = lambda tree: [entry["name"] for entry in ((tree or {}).get("entries") or [])]  # noqa: E731
-    readme = ai_readme(((result.get("readme") or result.get("readmeLower")) or {}).get("text"))
-    files = ([name for name in entries(result.get("root")) if name.casefold() in AI_FILES]
+    readme = ai_readme(((result.get("readme") or result.get("readmeLower") or result.get("readmeTitle")) or {}).get("text"))
+    files = ([name for name in entries(result.get("root")) if name.casefold() in AI_FILES or name.casefold().startswith(AI_FILE_PREFIXES)]
              + [f".github/{name}" for name in entries(result.get("dotGithub")) if name.casefold() in AI_GITHUB_FILES])
     evidence = files + ([f'README: "{readme}"'] if readme else [])
     history = ((result.get("recentHistory") or {}).get("target") or {}).get("history") or {}
     seen_tools = set()
     for commit in history.get("nodes") or []:
         message = commit.get("message") or ""
+        author = commit.get("author") or {}
+        # The first sign each commit gives: who wrote it, a co-author trailer, then a tool's own note.
+        signs = [("Commit author", ai_identity(author.get("name"), author.get("email")))]
         for line in message.splitlines():
-            trailer = re.fullmatch(r"\s*Co-authored-by:\s*(.*?)\s*<([^<>]+)>\s*", line, re.IGNORECASE)
-            if not trailer:
-                continue
-            identity, email = trailer.group(1).casefold(), trailer.group(2).casefold()
-            tool = None
-            if (re.fullmatch(r"claude(?:\s+(?:code|(?:haiku|sonnet|opus)\s+\d+(?:\.\d+)*))?", identity)
-                    and email in {"noreply@anthropic.com", "noreply@claude.ai"}):
-                tool = "Claude"
-            elif (re.fullmatch(r"(?:openai\s+)?codex", identity)
-                    and (email == "noreply@openai.com" or re.fullmatch(r"(?:\d+\+)?codex@users\.noreply\.github\.com", email))):
-                tool = "Codex"
-            elif (identity in {"copilot", "github copilot", "copilot-swe-agent[bot]"}
-                    and re.fullmatch(r"(?:\d+\+)?(?:copilot|copilot-swe-agent\[bot\])@users\.noreply\.github\.com", email)):
-                tool = "GitHub Copilot"
+            if trailer := re.fullmatch(r"\s*Co-authored-by:\s*(.*?)\s*<([^<>]+)>\s*", line, re.IGNORECASE):
+                signs.append(("Commit co-author", ai_identity(trailer.group(1), trailer.group(2))))
+        signs += [("Commit note", tool) for tool, note in AI_COMMIT_NOTES if note.search(message)]
+        for kind, tool in signs:
             if tool and tool not in seen_tools:
                 url = commit.get("url")
-                evidence.append(f"Commit co-author: {tool}" + (f" ({url})" if url else ""))
+                evidence.append(f"{kind}: {tool}" + (f" ({url})" if url else ""))
                 seen_tools.add(tool)
     return sorted(set(evidence))
+
+
+def inherited_ai(own: list[str] | None, source: str | None, source_ai: list[str] | None) -> list[str]:
+    """A repo's AI evidence plus that of the project it was formed from (its fork parent, or
+    the entry's upstream), each of those marked 'From owner/name: ...'. One the repo shows
+    itself (a CLAUDE.md the fork kept) isn't repeated.
+    shortcut: one level up only; follow the parent's own parent when a fork of a fork needs it."""
+    own = list(own or [])
+    return own + [f"From {source}: {item}" for item in source_ai or [] if source and item not in own]
 
 
 def fetch_github(repos: list[str], every_release: bool = False) -> dict[str, dict]:
@@ -421,7 +522,9 @@ def fetch_github(repos: list[str], every_release: bool = False) -> dict[str, dic
                 # A fork of a template (Decky's plugin template) is a new plugin, not a copy of one.
                 "fork": result["isFork"] and not (result["parent"] or {}).get("isTemplate"),
                 # The repo it was forked from: its name, whether it's archived and its newest release date.
+                # ai: the same signs of AI help as above, found in that repo.
                 "parent": result["parent"] and {"full_name": result["parent"]["nameWithOwner"], "archived": result["parent"]["isArchived"],
+                                                "ai": ai_files(result["parent"]),
                                                 "released": next((node["publishedAt"] for node in result["parent"]["releases"]["nodes"]), None)},
                 "releases": [rest_shape(node) for node in releases],
             }
@@ -435,6 +538,8 @@ def main() -> int:
     args = parser.parse_args()
     apps = load_registry_apps(REGISTRY)
     errors, warnings = static_errors(apps) + readme_errors(apps, README.read_text(encoding="utf-8")), []
+    cache = os.environ.get("VALIDATE_CACHE")
+    load_zip_cache(cache)
     if not args.offline:
         live_apps = apps
         if args.base_registry:
@@ -442,18 +547,28 @@ def main() -> int:
                 previous = {app["id"]: app for app in json.load(base)["apps"]}
             live_apps = [app for app in apps if previous.get(app["id"]) != app]
         github = fetch_github(list({app["repo"].casefold(): app["repo"] for app in live_apps}.values())) if live_apps else {}
-        for app in live_apps:
+        def check(app):
             try:
-                app_errors, app_warnings = github_problems(app, github.get(app["repo"].casefold(), {}))
+                result = github_problems(app, github.get(app["repo"].casefold(), {}))
             except Exception as error:  # one unreachable repo shouldn't hide the rest
-                app_errors, app_warnings = [f"{app['id']}: {type(error).__name__}: {error}"], []
+                result = [f"{app['id']}: {type(error).__name__}: {error}"], []
+            print(f"{'FAIL' if result[0] else 'ok  '} {app['id']}", flush=True)
+            return result
+
+        # Each entry reads its ZIPs' indexes over the network, so they run side by side; map keeps the order.
+        with ThreadPoolExecutor(8) as pool:
+            checked = list(pool.map(check, live_apps))
+        for app, (app_errors, app_warnings) in zip(live_apps, checked):
             errors += app_errors
             warnings += app_warnings
-            print(f"{'FAIL' if app_errors else 'ok  '} {app['id']}", flush=True)
+    if not args.offline:  # an offline run reads no ZIPs, and would save an empty cache
+        save_zip_cache(cache)
     for warning in warnings:
         print(f"warning: {warning}")
     for error in errors:
         print(f"error: {error}")
+    if _reads["cached"] or _reads["downloaded"]:
+        print(f"ZIP indexes: {_reads['cached']} from the cache, {_reads['downloaded']} read")
     print(f"{len(apps)} entries, {len(errors)} errors, {len(warnings)} warnings")
     return 1 if errors else 0
 
