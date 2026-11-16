@@ -5752,6 +5752,51 @@
       "asset": { "include": [".zip"], "exclude": ["source"] }
     },
     {
+      "id": "decky-ssh-warden",
+      "name": "SSH Warden",
+      "description": "Manage SSH on the Steam Deck from Game Mode: on/off, port, password login, trusted networks and an auto-off timer.",
+      "repo": "ArcherGu/decky-ssh-warden",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["SSH Warden"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-storage-cleaner-rust",
+      "name": "Storage Cleaner (Rust)",
+      "description": "Native port of Storage Cleaner.",
+      "repo": "beallio/decky-storage-cleaner-rust",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Storage Cleaner (Rust)"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "piston",
+      "name": "Piston",
+      "description": "Companion plugin for the Piston integration: pairing, the apps offered as sources, notifications, camera picture-in-picture and device...",
+      "repo": "White-Goblin/piston",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Piston"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "ubermoc-warcraft-mod-updater",
+      "name": "Ubermoc Warcraft Mod Updater",
+      "description": "Finds your World of Warcraft games and updates their addons from GitHub releases in Gaming Mode.",
+      "repo": "ubermoc/Ubermoc-Warcraft-Mod-Updater",
+      "category": "Mod Managers",
+      "detect": { "type": "decky-plugin", "names": ["Ubermoc Warcraft Mod Updater"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-upscaler-manager",
+      "name": "Decky Upscaler Manager",
+      "description": "Pick an upscaler per game from the Steam Deck UI - OptiScaler with FSR 4 Lite, cyboman's FSR 4.1.2 Lite builds, HelixSR's HLX FSR 4 and...",
+      "repo": "supercleans/decky-upscaler-manager",
+      "category": "Frame Generation",
+      "detect": { "type": "decky-plugin", "names": ["Decky Upscaler Manager"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
       "id": "metadeck",
       "name": "MetaDeck",
       "description": "Plugin for viewing metadata, achievements and compatibility data for Non-Steam games.",
