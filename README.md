@@ -717,6 +717,7 @@ python scripts/build_decky_store.py releases.json out/store
 | Piston | Utilities | [White-Goblin/piston](https://github.com/White-Goblin/piston) |
 | Ubermoc Warcraft Mod Updater | Mod Managers | [ubermoc/Ubermoc-Warcraft-Mod-Updater](https://github.com/ubermoc/Ubermoc-Warcraft-Mod-Updater) |
 | Decky Upscaler Manager | Frame Generation | [supercleans/decky-upscaler-manager](https://github.com/supercleans/decky-upscaler-manager) |
+| MetaDeck | Game Libraries | [Xriuk/MetaDeck](https://github.com/Xriuk/MetaDeck) |
 
 ## Where the plugins come from
 

@@ -5795,6 +5795,16 @@
       "category": "Frame Generation",
       "detect": { "type": "decky-plugin", "names": ["Decky Upscaler Manager"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "metadeck",
+      "name": "MetaDeck",
+      "description": "Plugin for viewing metadata, achievements and compatibility data for Non-Steam games.",
+      "repo": "Xriuk/MetaDeck",
+      "category": "Game Libraries",
+      "upstream": "EmuDeck/MetaDeck",
+      "detect": { "type": "decky-plugin", "names": ["MetaDeck"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
