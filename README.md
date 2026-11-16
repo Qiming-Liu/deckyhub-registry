@@ -712,6 +712,7 @@ python scripts/build_decky_store.py releases.json out/store
 | Next Unlock | Game Libraries | [vlmaier/next-unlock](https://github.com/vlmaier/next-unlock) |
 | Plex Audiobooks | Utilities | [indyjamesb/decky-plex-audiobooks](https://github.com/indyjamesb/decky-plex-audiobooks) |
 | DeckWarden | Utilities | [nithou/deckwarden](https://github.com/nithou/deckwarden) |
+| MetaDeck | Game Libraries | [Xriuk/MetaDeck](https://github.com/Xriuk/MetaDeck) |
 
 ## Where the plugins come from
 
