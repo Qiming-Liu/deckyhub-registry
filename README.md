@@ -716,6 +716,9 @@ python scripts/build_decky_store.py releases.json out/store
 | Ubermoc Warcraft Mod Updater | Mod Managers | [ubermoc/Ubermoc-Warcraft-Mod-Updater](https://github.com/ubermoc/Ubermoc-Warcraft-Mod-Updater) |
 | Decky Upscaler Manager | Frame Generation | [supercleans/decky-upscaler-manager](https://github.com/supercleans/decky-upscaler-manager) |
 | MetaDeck | Game Libraries | [Xriuk/MetaDeck](https://github.com/Xriuk/MetaDeck) |
+| Eden Settings | Game Libraries | [simkin/decky-eden-settings](https://github.com/simkin/decky-eden-settings) |
+| Ally System Control | Utilities | [adrigm/rog-ally-x20-decky](https://github.com/adrigm/rog-ally-x20-decky) |
+| N.E.C.A | Controllers | [cediqqu/decky-neca](https://github.com/cediqqu/decky-neca) |
 
 ## Where the plugins come from
 
