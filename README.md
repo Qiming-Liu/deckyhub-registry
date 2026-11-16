@@ -712,6 +712,11 @@ python scripts/build_decky_store.py releases.json out/store
 | Next Unlock | Game Libraries | [vlmaier/next-unlock](https://github.com/vlmaier/next-unlock) |
 | Plex Audiobooks | Utilities | [indyjamesb/decky-plex-audiobooks](https://github.com/indyjamesb/decky-plex-audiobooks) |
 | DeckWarden | Utilities | [nithou/deckwarden](https://github.com/nithou/deckwarden) |
+| SSH Warden | Utilities | [ArcherGu/decky-ssh-warden](https://github.com/ArcherGu/decky-ssh-warden) |
+| Storage Cleaner (Rust) | Utilities | [beallio/decky-storage-cleaner-rust](https://github.com/beallio/decky-storage-cleaner-rust) |
+| Piston | Utilities | [White-Goblin/piston](https://github.com/White-Goblin/piston) |
+| Ubermoc Warcraft Mod Updater | Mod Managers | [ubermoc/Ubermoc-Warcraft-Mod-Updater](https://github.com/ubermoc/Ubermoc-Warcraft-Mod-Updater) |
+| Decky Upscaler Manager | Frame Generation | [supercleans/decky-upscaler-manager](https://github.com/supercleans/decky-upscaler-manager) |
 
 ## Where the plugins come from
 
