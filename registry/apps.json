@@ -5787,6 +5787,33 @@
       "upstream": "EmuDeck/MetaDeck",
       "detect": { "type": "decky-plugin", "names": ["MetaDeck"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-eden-settings",
+      "name": "Eden Settings",
+      "description": "Change the most useful Eden (Nintendo Switch emulator) settings, globally or per game, straight from Game Mode, with a plain-language...",
+      "repo": "simkin/decky-eden-settings",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["Eden Settings"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "rog-ally-x20-decky",
+      "name": "Ally System Control",
+      "description": "Control de volumen, silencio y brillo de Windows desde Decky en la ROG Ally.",
+      "repo": "adrigm/rog-ally-x20-decky",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Ally System Control"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-neca",
+      "name": "N.E.C.A",
+      "description": "N.E.C.A (Nintendo-EmuDeck Controller Autoconf): autoconfigura los mandos de Eden (Switch) y Cemu (Wii U) antes de lanzar el juego.",
+      "repo": "cediqqu/decky-neca",
+      "category": "Controllers",
+      "detect": { "type": "decky-plugin", "names": ["N.E.C.A"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
