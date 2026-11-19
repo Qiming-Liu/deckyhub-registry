@@ -5568,7 +5568,7 @@
       "repo": "TLin-Y/SteamAnyAspectRatioMods",
       "category": "Customization",
       "detect": { "type": "decky-plugin", "names": ["AnyAspectRatio"] },
-      "asset": { "include": [".zip"], "exclude": ["source", "Offline"] }
+      "asset": { "include": [".zip"], "exclude": ["source", "Offline", "Desktop"] }
     },
     {
       "id": "decky-heroic",
