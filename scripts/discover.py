@@ -14,11 +14,12 @@ The candidates come from two community catalogs, GitHub search and optionally Re
   credentials are configured.
 One source being down never stops the others.
 Each candidate is checked the way validate.py checks an entry (its own releases, one
-plugin ZIP, the ZIP's plugin.json name), on its newest stable release, else its newest
+plugin ZIP, the ZIP's plugin.json name, and that plugin.json is a Decky Loader one: a flags
+list, or api_version with a publish block), on its newest stable release, else its newest
 pre-release: a plugin with pre-releases only qualifies too. A fork qualifies only
 while it's the active one (active_fork(): its original is archived, gone or behind it),
 and its PR line says what it's a fork of. One that looks
-unfinished (quality.py: too new, no users, a placeholder version, no description) is
+unfinished (quality.py: a placeholder version, no description) is
 skipped this time and proposed again once it grows out of it. Passing ones are
 appended to registry/apps.json and the README table; the discover workflow then opens
 a pull request, so a person still reviews every addition before it's merged.
@@ -40,7 +41,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from quality import unfinished
-from validate import load_registry_apps, API, README, REGISTRY, channel_releases, fetch, fetch_github, github_problems, matching_assets, zip_plugin_name
+from validate import load_registry_apps, API, README, REGISTRY, channel_releases, fetch, fetch_github, github_problems, is_decky_manifest, matching_assets, zip_plugin_manifest
 
 EXPLORER_URL = "https://raw.githubusercontent.com/SafetZahirovic/decky-plugins-explorer/HEAD/data/plugins.json"
 EXTENDED_URL = "https://decky-extended-plugins.beallio.com"
@@ -312,8 +313,10 @@ def check(item: dict, repo: dict | None) -> dict | None:
     if len(assets) != 1 or (repo["fork"] and not active_fork(repo, release)):
         return None
     # What Decky will report once it's installed, which can differ from the repo's copy.
-    name = zip_plugin_name(assets[0])
-    if not name:
+    manifest = zip_plugin_manifest(assets[0]) or {}
+    name = manifest.get("name")
+    # Any plugin.json with a name is not enough: other apps' plugins have one (SiYuan, Millennium, Pelican...).
+    if not isinstance(name, str) or not name.strip() or not is_decky_manifest(manifest):
         return None
     description = (plugin.get("publish") or {}).get("description") or ""
     if len(description) < 8 or sum(ord(char) > 127 for char in description) > 5:
@@ -423,7 +426,7 @@ def main() -> int:
     skipped = Counter()
     ready = []
     for entry in passed:
-        reasons = unfinished(entry, repos[entry["repo"].casefold()], now)
+        reasons = unfinished(entry, repos[entry["repo"].casefold()])
         skipped.update(re.sub(r"\d+|'.*'", "N", reason) for reason in reasons)
         if not reasons:
             ready.append(entry)

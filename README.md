@@ -55,7 +55,7 @@ Every plugin ZIP DeckyHub can install is also scanned for viruses with [ClamAV](
 
 The same ZIP scan also runs DeckyHub’s own independent audit, separately from the community audit above. Without executing plugin code, it checks the manifest for root and looks for selected patterns involving sensitive files, persistence, privilege changes, disabled TLS and downloads piped to a shell. It compares eligible release files with the repository’s current source for the release tag, and inventories identifiable installed packages and native binaries. Identified package versions are checked against [OSV](https://osv.dev/); package names and versions are sent to OSV for that lookup. Generated files, unknown binaries and bundled code may not be comparable or identifiable. Reports record ZIP paths and scan status separately for each check in `scans.json` and `plugins.json`. Missing, incomplete and failed checks are not clean results; even completed checks cannot prove safety. Results are tied to the ZIP’s SHA-256 and backfilled within scan budgets.
 
-New plugins are found automatically too. Every three hours the [discover workflow](.github/workflows/discover.yml) runs [`scripts/discover.py`](scripts/discover.py) over two community catalogs, [Decky Plugins Explorer](https://safetzahirovic.github.io/decky-plugins-explorer/)'s nightly list of every public repository with a Decky `plugin.json` and [Decky Extended Plugins](https://decky-extended-plugins.beallio.com/) (the Decky store plus community plugins), our own GitHub search, and optionally Reddit's [r/deckyloader](https://www.reddit.com/r/deckyloader/). Reddit discovery uses only the approved OAuth Data API, reads recent post links/text and a bounded set of comments, and runs only when maintainers configure the `REDDIT_CLIENT_ID` and `REDDIT_CLIENT_SECRET` GitHub Actions secrets. Without them, the other sources continue normally. Plugins that aren't listed yet, pass the same checks as `validate.py` (on their newest stable release, else their newest pre-release, so plugins with pre-releases only are found too) and don't look unfinished ([`scripts/quality.py`](scripts/quality.py): a first release under 14 days old, no stars and under 10 downloads, a `0.0.x` version or no description; those are tried again later) are opened as a pull request against `develop`, at most 50 at a time. Nothing is merged without review.
+New plugins are found automatically too. Every three hours the [discover workflow](.github/workflows/discover.yml) runs [`scripts/discover.py`](scripts/discover.py) over two community catalogs, [Decky Plugins Explorer](https://safetzahirovic.github.io/decky-plugins-explorer/)'s nightly list of every public repository with a Decky `plugin.json` and [Decky Extended Plugins](https://decky-extended-plugins.beallio.com/) (the Decky store plus community plugins), our own GitHub search, and optionally Reddit's [r/deckyloader](https://www.reddit.com/r/deckyloader/). Reddit discovery uses only the approved OAuth Data API, reads recent post links/text and a bounded set of comments, and runs only when maintainers configure the `REDDIT_CLIENT_ID` and `REDDIT_CLIENT_SECRET` GitHub Actions secrets. Without them, the other sources continue normally. Plugins that aren't listed yet, pass the same checks as `validate.py` (on their newest stable release, else their newest pre-release, so plugins with pre-releases only are found too), whose `plugin.json` is a Decky Loader one (a `flags` list, or `api_version` with a `publish` block; other apps' plugins have a `plugin.json` too) and don't look unfinished ([`scripts/quality.py`](scripts/quality.py): a `0.0.x` version or no description; those are tried again later) are opened as a pull request against `develop`, at most 50 at a time. Nothing is merged without review.
 
 
 The [MetaDefender backfill](.github/workflows/metadefender-scan.yml) looks up public plugin ZIPs by SHA-256 and uploads the ZIP to MetaDefender Cloud if it has no report. Uploaded files are shared with that service. It works through the backlog within the API quota and publishes separate results on `metadefender-reports`; missing, pending, oversized, or failed scans are not clean verdicts. Set the registry's `METADEFENDER_API_KEY` secret to enable it.
@@ -738,6 +738,231 @@ python scripts/build_decky_store.py releases.json out/store
 | Decky Dictation PTT | Utilities | [thelinuxgmr/decky-dictation-ptt](https://github.com/thelinuxgmr/decky-dictation-ptt) |
 | DSR FOV | Utilities | [Chopper1337/decky-dsfov](https://github.com/Chopper1337/decky-dsfov) |
 | SLSDeckUniversal | Launch Options | [Kaal31/slsdeck](https://github.com/Kaal31/slsdeck) |
+| Gameyfin | Launch Options | [PlayingKarrde/gameyfin-decky](https://github.com/PlayingKarrde/gameyfin-decky) |
+| RomM | Game Libraries | [PlayingKarrde/romm-decky](https://github.com/PlayingKarrde/romm-decky) |
+| EGPU Buddy | Performance | [denver8989/EGPU-Buddy](https://github.com/denver8989/EGPU-Buddy) |
+| ROM-Store | Game Libraries | [uposum/decky-rom-store](https://github.com/uposum/decky-rom-store) |
+| Font Picker | Customization | [redsoap-blip/DeckyFontPicker](https://github.com/redsoap-blip/DeckyFontPicker) |
+| Vistazo | Game Libraries | [m4rz3r0/vistazo-decky](https://github.com/m4rz3r0/vistazo-decky) |
+| BC-250 Dashboard | Utilities | [YHallouard/turing_smart_screen_rust](https://github.com/YHallouard/turing_smart_screen_rust) |
+| WireGuard | Utilities | [Polgonite/decky-wireguard](https://github.com/Polgonite/decky-wireguard) |
+| NoLag | Utilities | [Havok027/NoLag](https://github.com/Havok027/NoLag) |
+| HomeyDeck | Utilities | [OunissiDhiaEddine/HomeyDeck](https://github.com/OunissiDhiaEddine/HomeyDeck) |
+| Ally Impulse | Controllers | [naturale0/Ally-Impulse](https://github.com/naturale0/Ally-Impulse) |
+| Vistazo RomM | Game Libraries | [m4rz3r0/vistazo-romm](https://github.com/m4rz3r0/vistazo-romm) |
+| Waydroid Manager | Utilities | [Raxcoms/decky-waydroid-manager](https://github.com/Raxcoms/decky-waydroid-manager) |
+| Memcard | Game Libraries | [imahungrypanda/memcard](https://github.com/imahungrypanda/memcard) |
+| NetFence | Utilities | [androettop/netfence](https://github.com/androettop/netfence) |
+| Collection Creator | Game Libraries | [foXaCe/decky-collection-creator](https://github.com/foXaCe/decky-collection-creator) |
+| AutoHDR Gamescope | Customization | [Pochowan/decky-autohdr](https://github.com/Pochowan/decky-autohdr) |
+| SaveBackupSD | Utilities | [hayahsc3/decky-projetos](https://github.com/hayahsc3/decky-projetos) |
+| PS3 Pair | Controllers | [Remper1997/decky-ps3-pair](https://github.com/Remper1997/decky-ps3-pair) |
+| Ayaneo 3 Decky | Controllers | [sknowledge1/Ayaneo3-Decky](https://github.com/sknowledge1/Ayaneo3-Decky) |
+| Emu-Hub | Game Libraries | [lauridskern/decky-emu-hub](https://github.com/lauridskern/decky-emu-hub) |
+| Plugin-Hub | Utilities | [lauridskern/decky-plugin-hub](https://github.com/lauridskern/decky-plugin-hub) |
+| Vistazo GeForce NOW | Game Libraries | [m4rz3r0/vistazo-geforcenow](https://github.com/m4rz3r0/vistazo-geforcenow) |
+| SwitchDeck | Controllers | [topuchi13/SwitchDeck](https://github.com/topuchi13/SwitchDeck) |
+| GameSync PortProton | Launch Options | [Differin3/GameSync-NonSteam](https://github.com/Differin3/GameSync-NonSteam) |
+| zapret-deck | Utilities | [rosakodu/zapret-deck](https://github.com/rosakodu/zapret-deck) |
+| Decky Timer | Utilities | [powange/decky-timer](https://github.com/powange/decky-timer) |
+| Touchscreen Toggle | Utilities | [cwallace/decky-touchscreen-toggle](https://github.com/cwallace/decky-touchscreen-toggle) |
+| xray-vpn-decky | Utilities | [WAYK-A/xray-vpn-decky](https://github.com/WAYK-A/xray-vpn-decky) |
+| LetMeReShadeAll | Utilities | [sauliiin/LetMeReShadeAll](https://github.com/sauliiin/LetMeReShadeAll) |
+| vibrantDeck | Customization | [adrigm/vibrantDeck](https://github.com/adrigm/vibrantDeck) |
+| Launch Curtain | Utilities | [LoZazaMastro/Launch-Curtain](https://github.com/LoZazaMastro/Launch-Curtain) |
+| Guided | Controllers | [Chiko751/Guided](https://github.com/Chiko751/Guided) |
+| Glance Library | Game Libraries | [shak18/glance-library](https://github.com/shak18/glance-library) |
+| ROG Ally Rumble Fixer | Controllers | [alicerum/rog-ally-rumble-fixer](https://github.com/alicerum/rog-ally-rumble-fixer) |
+| SteamView | Game Libraries | [nabizzlesjj/steamview](https://github.com/nabizzlesjj/steamview) |
+| WaveSafe | Game Libraries | [embergabor/wavesafe-deck-plugin](https://github.com/embergabor/wavesafe-deck-plugin) |
+| warp-deck | Utilities | [rosakodu/warp-deck](https://github.com/rosakodu/warp-deck) |
+| Shortcuts | Controllers | [LoZazaMastro/Shortcuts](https://github.com/LoZazaMastro/Shortcuts) |
+| Guided360 | Controllers | [Chiko751/Guided360](https://github.com/Chiko751/Guided360) |
+| Deckcord | Utilities | [andriuspetravicius/Deckcord](https://github.com/andriuspetravicius/Deckcord) |
+| Legion Go Toolbox | Frame Generation | [kazzzzzzzzzzuya/LeGo-decky-toolbox](https://github.com/kazzzzzzzzzzuya/LeGo-decky-toolbox) |
+| PSP XMB | Game Libraries | [timskap/psp-xmb](https://github.com/timskap/psp-xmb) |
+| Installed Home | Game Libraries | [Rodiosfo/Home-Installdeck](https://github.com/Rodiosfo/Home-Installdeck) |
+| GC Deck | Utilities | [hikoxy/game-cheats-deck](https://github.com/hikoxy/game-cheats-deck) |
+| DS5Bridge | Controllers | [ccc007ccc/ds5bridge-steamos](https://github.com/ccc007ccc/ds5bridge-steamos) |
+| bonsAI | Utilities | [qd313/bonsAI](https://github.com/qd313/bonsAI) |
+| Cuivar Pulse | Controllers | [shikamaru2694/CuivarPulse](https://github.com/shikamaru2694/CuivarPulse) |
+| DeckTunes | Customization | [Sablinova/DeckTunes](https://github.com/Sablinova/DeckTunes) |
+| RomM Sync | Game Libraries | [melikootje/Romm-emudecky](https://github.com/melikootje/Romm-emudecky) |
+| WiFiDiagnostic | Utilities | [WanderingxLotus/WiFiDiagnostic](https://github.com/WanderingxLotus/WiFiDiagnostic) |
+| BETT-R LED | Controllers | [MASTERCEREAL/BETTE-R-LED-ARMADA-OS](https://github.com/MASTERCEREAL/BETTE-R-LED-ARMADA-OS) |
+| TrainerDeck | Utilities | [chen-coco/trainerdeck](https://github.com/chen-coco/trainerdeck) |
+| Jelly Tunes | Game Libraries | [sensei-b/jelly-tunes](https://github.com/sensei-b/jelly-tunes) |
+| DeckGrade | Customization | [Olajur/DeckGrade](https://github.com/Olajur/DeckGrade) |
+| DeckGlass | Game Libraries | [lumen-tools/DeckGlass](https://github.com/lumen-tools/DeckGlass) |
+| RAT (Radical Advanced Tools) | Frame Generation | [berczeller/RAT](https://github.com/berczeller/RAT) |
+| CheatDeck 2 | Launch Options | [ilukezippo/CheatDeck2](https://github.com/ilukezippo/CheatDeck2) |
+| DeckyMus | Utilities | [Kowalski-coder/DeckyMus](https://github.com/Kowalski-coder/DeckyMus) |
+| DeckyOstMusic | Customization | [Allive/DeckyOstMusic](https://github.com/Allive/DeckyOstMusic) |
+| HDR Auto Pilot | Game Libraries | [Tri70n/hdr-auto-pilot](https://github.com/Tri70n/hdr-auto-pilot) |
+| Clean Steam Temp | Game Libraries | [danielcamilo1/decky-clean-steam-temp-folder](https://github.com/danielcamilo1/decky-clean-steam-temp-folder) |
+| F1Pro EC Control | Performance | [Phioly/F1Pro-EC-Control](https://github.com/Phioly/F1Pro-EC-Control) |
+| Chat Splitter | Utilities | [Pollito001/chat-splitter](https://github.com/Pollito001/chat-splitter) |
+| CPU Governor Toggle | Performance | [j0shm1lls/decky-cpu-governor-toggle](https://github.com/j0shm1lls/decky-cpu-governor-toggle) |
+| AC Full Power | Performance | [braunglasrakete/steamdeck-decky-ac-full-power](https://github.com/braunglasrakete/steamdeck-decky-ac-full-power) |
+| Batocera Control | Utilities | [darkplace/decky-bcc](https://github.com/darkplace/decky-bcc) |
+| Decky Dictation | Utilities | [Becktor/decky-dictation](https://github.com/Becktor/decky-dictation) |
+| Decky LSFG-VK - Ozozuz's Fork | Frame Generation | [Ozozuz/decky-lsfg-vk](https://github.com/Ozozuz/decky-lsfg-vk) |
+| DeckyWARP | Utilities | [LamPPKK/DeckyWARP](https://github.com/LamPPKK/DeckyWARP) |
+| Game Platform Icons | Game Libraries | [PacificSilent/decky-game-platform-icons](https://github.com/PacificSilent/decky-game-platform-icons) |
+| Discord Deck | Controllers | [brunoccst/discord-decky-loader-plugin](https://github.com/brunoccst/discord-decky-loader-plugin) |
+| Perf Overlay Shortcut | Performance | [syrnyk/decky-perf-overlay-shortcut](https://github.com/syrnyk/decky-perf-overlay-shortcut) |
+| HaqGen | Frame Generation | [Enotherms/HaqGen](https://github.com/Enotherms/HaqGen) |
+| Master Keyboard | Controllers | [soullegacyvn-ux/Master-Keyboard](https://github.com/soullegacyvn-ux/Master-Keyboard) |
+| Controller Battery | Controllers | [tobipjuk/decky-controller-battery](https://github.com/tobipjuk/decky-controller-battery) |
+| Legion of Fans | Performance | [marcodifatta/legion-of-fans](https://github.com/marcodifatta/legion-of-fans) |
+| Ubermoc Speech | Performance | [ubermoc/Ubermoc-Speech](https://github.com/ubermoc/Ubermoc-Speech) |
+| Wicked Dupe | Utilities | [koua29/decky-wicked-dupe](https://github.com/koua29/decky-wicked-dupe) |
+| Lurkbox | Utilities | [lurkbox/decky-lurkbox](https://github.com/lurkbox/decky-lurkbox) |
+| Hoard | Mod Managers | [godvig/decky-hoard](https://github.com/godvig/decky-hoard) |
+| Clip Converter | Utilities | [Lexodeus/ClipConverter](https://github.com/Lexodeus/ClipConverter) |
+| Bedtime | Utilities | [paulmiro/decky-bedtime](https://github.com/paulmiro/decky-bedtime) |
+| PS5 Quiet | Performance | [honkhonk-mi/ps5-quiet](https://github.com/honkhonk-mi/ps5-quiet) |
+| Decky Torrent | Utilities | [markuusbrdev/deckytorrent](https://github.com/markuusbrdev/deckytorrent) |
+| Decky Builds | Controllers | [Eltonmaster/decky_builds](https://github.com/Eltonmaster/decky_builds) |
+| Decky Unison | Game Libraries | [RhanCandia/decky-unison](https://github.com/RhanCandia/decky-unison) |
+| ScOFF | Utilities | [meoiswa/decky-scoff](https://github.com/meoiswa/decky-scoff) |
+| Decky Recorder GSR | Performance | [Pochowan/decky-recorder](https://github.com/Pochowan/decky-recorder) |
+| Moonlight Shortcuts | Game Libraries | [brandonrjguth/decky-moonlight](https://github.com/brandonrjguth/decky-moonlight) |
+| Mudfish VPN | Utilities | [sejongY00/mudfish-decky](https://github.com/sejongY00/mudfish-decky) |
+| Proton VPN | Launch Options | [Sleepl3zz/decky-proton-vpn](https://github.com/Sleepl3zz/decky-proton-vpn) |
+| Password Reset | Utilities | [sunim87/decky-password-reset](https://github.com/sunim87/decky-password-reset) |
+| Keyboard Opacity | Customization | [kaioh1990/decky-keyboard-opacity](https://github.com/kaioh1990/decky-keyboard-opacity) |
+| Led Lights | Customization | [mops1k/decky-led-lights](https://github.com/mops1k/decky-led-lights) |
+| Clash Manager | Utilities | [cycledm/decky-clash-manager](https://github.com/cycledm/decky-clash-manager) |
+| Dock Resolution | Utilities | [rdelgiudi/decky-resolution-changer](https://github.com/rdelgiudi/decky-resolution-changer) |
+| nekozame music | Utilities | [purplekairi1312/nekozame-music-decky](https://github.com/purplekairi1312/nekozame-music-decky) |
+| Shortcut Buttons | Utilities | [adkeyz/Decky-Shortcut-Buttons](https://github.com/adkeyz/Decky-Shortcut-Buttons) |
+| Decky Color Lab | Customization | [davnozdu/decky-color-lab](https://github.com/davnozdu/decky-color-lab) |
+| FileBrowser Quantum | Utilities | [BAYUNZIYUE/decky-filebrowser-quantum](https://github.com/BAYUNZIYUE/decky-filebrowser-quantum) |
+| Decky Power Profiles | Performance | [FDDQA/decky-power-profiles](https://github.com/FDDQA/decky-power-profiles) |
+| Hangul IME Bridge | Utilities | [gomburger/decky-hangul-ime](https://github.com/gomburger/decky-hangul-ime) |
+| Decky MOD Manager | Mod Managers | [luchengfj/decky-mod-manager](https://github.com/luchengfj/decky-mod-manager) |
+| EmuDecky RomM NG | Game Libraries | [ricktap/romm-emudecky-ng](https://github.com/ricktap/romm-emudecky-ng) |
+| Ally Sound Lab | Utilities | [davnozdu/ally-sound-lab](https://github.com/davnozdu/ally-sound-lab) |
+| Legion Go S Fan | Performance | [tywinMa/legion-go-s-fan-plugin](https://github.com/tywinMa/legion-go-s-fan-plugin) |
+| Leftover Cleaner | Launch Options | [ryansetia1/decky-leftover-cleaner](https://github.com/ryansetia1/decky-leftover-cleaner) |
+| Trigger Calibration | Utilities | [Shushkata/Steam-Deck-Trigger-Calibration](https://github.com/Shushkata/Steam-Deck-Trigger-Calibration) |
+| Glass Shelf | Game Libraries | [scottbabcock/glass-shelf](https://github.com/scottbabcock/glass-shelf) |
+| Koda AI | Utilities | [Kowalski-coder/koda-ai-plugin](https://github.com/Kowalski-coder/koda-ai-plugin) |
+| Deck Localize | Utilities | [CampbellGit/deck-localize](https://github.com/CampbellGit/deck-localize) |
+| PDF Viewer | Customization | [IANmO0ne/pdf-viewer](https://github.com/IANmO0ne/pdf-viewer) |
+| T3 Code | Utilities | [PaoloDelCasale/decky-t3code](https://github.com/PaoloDelCasale/decky-t3code) |
+| LSFG-VK-Profile-Copier | Frame Generation | [hydroxycarbamide/decky-lsfg-vk-profile-copier](https://github.com/hydroxycarbamide/decky-lsfg-vk-profile-copier) |
+| DeckDisplay | Utilities | [Roskud/steamdeck-display](https://github.com/Roskud/steamdeck-display) |
+| Claude Sessions | Utilities | [brunoccst/claude-decky-loader-plugin](https://github.com/brunoccst/claude-decky-loader-plugin) |
+| SAM | Game Libraries | [Kowalski-coder/SAM-for-Decky-Loader](https://github.com/Kowalski-coder/SAM-for-Decky-Loader) |
+| ClarifyDeck | Utilities | [Amooomo/Clarifydeck](https://github.com/Amooomo/Clarifydeck) |
+| MSI Claw A8 Back Buttons & Rumble | Controllers | [sekirofly/msi-claw-a8-back-buttons-rumble](https://github.com/sekirofly/msi-claw-a8-back-buttons-rumble) |
+| What Should I Play | Game Libraries | [shwomz/whatshouldiplay-deck](https://github.com/shwomz/whatshouldiplay-deck) |
+| 小黄鸭2.0 | Frame Generation | [Ren-Amamiya-pixle/decky-lsfg-vk-zh](https://github.com/Ren-Amamiya-pixle/decky-lsfg-vk-zh) |
+| Mirror Controls | Controllers | [semyonvlasov/steamdeck_mirror_controls](https://github.com/semyonvlasov/steamdeck_mirror_controls) |
+| Currency Converter | Utilities | [S0S1S0CHKA/currency-converter](https://github.com/S0S1S0CHKA/currency-converter) |
+| Deckling | Utilities | [SMwaterSHLDhelp/Deckling](https://github.com/SMwaterSHLDhelp/Deckling) |
+| Completionist | Game Libraries | [jparisio/Completionist](https://github.com/jparisio/Completionist) |
+| Launch Editor | Launch Options | [JDLKMR/Decky-Launch-Editor-Legacy](https://github.com/JDLKMR/Decky-Launch-Editor-Legacy) |
+| Aparejo | Performance | [HugareBR/aparejo](https://github.com/HugareBR/aparejo) |
+| Windows Quick Settings | Performance | [Aqvilinus/windows-quick-settings](https://github.com/Aqvilinus/windows-quick-settings) |
+| Shortcut Forge | Launch Options | [ReemX/shortcut-forge](https://github.com/ReemX/shortcut-forge) |
+| Depth3D Glasses | Utilities | [sardonyxwt/decky-depth3d-glasses](https://github.com/sardonyxwt/decky-depth3d-glasses) |
+| Legion Go Charge Limit | Performance | [MavrexSoftware/Decky-Legion-Go-Charge-Limit](https://github.com/MavrexSoftware/Decky-Legion-Go-Charge-Limit) |
+| GPD5CachyAutoTDP | Performance | [decodergit/GPD5CachyAutoTDP](https://github.com/decodergit/GPD5CachyAutoTDP) |
+| Game Picks | Game Libraries | [otisabiburada/finally-game-picks](https://github.com/otisabiburada/finally-game-picks) |
+| RomM Deck | Game Libraries | [soullink9/Decky-RomM_Deck](https://github.com/soullink9/Decky-RomM_Deck) |
+| Discordio | Controllers | [Daggenthal/Discordio](https://github.com/Daggenthal/Discordio) |
+| Voice Input | Performance | [dadplease69/decky-voice-input](https://github.com/dadplease69/decky-voice-input) |
+| AdGuard VPN | Utilities | [gomburger/decky-adguard-vpn](https://github.com/gomburger/decky-adguard-vpn) |
+| Vibepollo Remote | Utilities | [haupq/Vibepolo-remote-decky](https://github.com/haupq/Vibepolo-remote-decky) |
+| External Storage Guard | Utilities | [ohxiaoguang/decky-external-storage-guard](https://github.com/ohxiaoguang/decky-external-storage-guard) |
+| Cursor Scaler | Utilities | [wingedtomato/decky-cursor-scaler-plugin](https://github.com/wingedtomato/decky-cursor-scaler-plugin) |
+| Offline Wiki Packs | Utilities | [Sabissimo/decky-offline-wiki-packs](https://github.com/Sabissimo/decky-offline-wiki-packs) |
+| AreUOK | Utilities | [flomonce/AreUOK-Decky-Plugin](https://github.com/flomonce/AreUOK-Decky-Plugin) |
+| Legion Go S Rumble | Controllers | [PacificSilent/decky-legion-go-s-rumble-config](https://github.com/PacificSilent/decky-legion-go-s-rumble-config) |
+| Decky Notifications | Utilities | [zany130/decky-notifications](https://github.com/zany130/decky-notifications) |
+| Decky Sbox | Utilities | [ljm625/decky-sbox](https://github.com/ljm625/decky-sbox) |
+| Custom Brightness | Game Libraries | [0xKim/decky-custom-brightness](https://github.com/0xKim/decky-custom-brightness) |
+| Family View Numpad | Controllers | [JamesDAdams/decky-family-pin-code](https://github.com/JamesDAdams/decky-family-pin-code) |
+| Midnight Glass Overlay | Customization | [K1tsune12/decky-midnight-glass-overlay](https://github.com/K1tsune12/decky-midnight-glass-overlay) |
+| Picture in Picture | Utilities | [nemico/decky-pip](https://github.com/nemico/decky-pip) |
+| Window Switcher | Controllers | [JDLKMR/decky-window-switcher](https://github.com/JDLKMR/decky-window-switcher) |
+| Download All+ | Utilities | [sharkusmanch/decky-download-all-plus](https://github.com/sharkusmanch/decky-download-all-plus) |
+| Audio Hook Plugin | Customization | [Mujtaba-Alsaleh/Decky-Game-Theme-Music-On-Home](https://github.com/Mujtaba-Alsaleh/Decky-Game-Theme-Music-On-Home) |
+| Decky Trophy Toasts | Game Libraries | [K1tsune12/decky-trophy-toasts](https://github.com/K1tsune12/decky-trophy-toasts) |
+| DeckFAQs | Game Libraries | [hulkrelax/deckfaqs](https://github.com/hulkrelax/deckfaqs) |
+| Game Base Social | Game Libraries | [toto-console/game-hub](https://github.com/toto-console/game-hub) |
+| PatchHub | Utilities | [Mabinogi-Cichol/patchhub](https://github.com/Mabinogi-Cichol/patchhub) |
+| 屏幕保护增强 | Performance | [Grails125/ScreenSaverEnhancements](https://github.com/Grails125/ScreenSaverEnhancements) |
+| Azure-Syncthing | Utilities | [Azure-Agst/decky-syncthing](https://github.com/Azure-Agst/decky-syncthing) |
+| Add to Steam | Utilities | [jurassicplayer/decky-addtosteam](https://github.com/jurassicplayer/decky-addtosteam) |
+| Controller Dock | Controllers | [TacticalLaptopBag/decky-controller-dock](https://github.com/TacticalLaptopBag/decky-controller-dock) |
+| WoWDeck Input | Utilities | [iCodyYang/WoWDeck-Input](https://github.com/iCodyYang/WoWDeck-Input) |
+| FlatpakUpdater | Utilities | [0xD34D/FlatpakUpdater](https://github.com/0xD34D/FlatpakUpdater) |
+| Don't Dimmadeck | Performance | [JaxonWright/decky-dont-dimmadeck](https://github.com/JaxonWright/decky-dont-dimmadeck) |
+| Decky Toolkit | Utilities | [jackhric/decky-toolkit](https://github.com/jackhric/decky-toolkit) |
+| Gurren | Performance | [niwia/Gurren](https://github.com/niwia/Gurren) |
+| SkyPortal | Performance | [Starkka15/SkyPortal](https://github.com/Starkka15/SkyPortal) |
+| Frame Suite | Frame Generation | [kazzzzzzzzzzuya/Frame-Suite](https://github.com/kazzzzzzzzzzuya/Frame-Suite) |
+| SpotifyDeck | Game Libraries | [Lexodeus/SpotifyDeck](https://github.com/Lexodeus/SpotifyDeck) |
+| SimpleDeckyTDP-Intel | Performance | [kas5852/SimpleDeckyTDP-Intel](https://github.com/kas5852/SimpleDeckyTDP-Intel) |
+| Mumble | Utilities | [manbearpig3130/deckyble](https://github.com/manbearpig3130/deckyble) |
+| DeckSCP | Utilities | [ArnonGuttel/decky-filetransfer-plugin](https://github.com/ArnonGuttel/decky-filetransfer-plugin) |
+| Change TTL | Utilities | [JuanJoseGonGi/decky-plugin-change-ttl](https://github.com/JuanJoseGonGi/decky-plugin-change-ttl) |
+| DeckySales | Utilities | [zarif98/DeckySales](https://github.com/zarif98/DeckySales) |
+| RomM Downloader | Game Libraries | [AshleyWragg/decky-romm](https://github.com/AshleyWragg/decky-romm) |
+| Shelfcloud | Game Libraries | [bschelst/shelfcloud-decky](https://github.com/bschelst/shelfcloud-decky) |
+| Map Storage | Game Libraries | [evertonfxavier/map-storage](https://github.com/evertonfxavier/map-storage) |
+| TouchMouse | Utilities | [ax-zwk/decky-touchmouse](https://github.com/ax-zwk/decky-touchmouse) |
+| Decky Overlay | Game Libraries | [powange/decky-overlay](https://github.com/powange/decky-overlay) |
+| Decky SoT | Utilities | [powange/decky-sot](https://github.com/powange/decky-sot) |
+| Droid Deck Loader | Launch Options | [evoluketion/droid-deck-loader](https://github.com/evoluketion/droid-deck-loader) |
+| OverTone | Customization | [SuicideFromVenus/OverTone](https://github.com/SuicideFromVenus/OverTone) |
+| zipline-uploader | Utilities | [Marshy-Madness/zipline-auto-uploader](https://github.com/Marshy-Madness/zipline-auto-uploader) |
+| DeckDepot | Utilities | [zany130/deckdepot](https://github.com/zany130/deckdepot) |
+| vnt_control | Utilities | [zxhwfe/vnt-control](https://github.com/zxhwfe/vnt-control) |
+| Controller1 | Controllers | [0x00by73/Controller1](https://github.com/0x00by73/Controller1) |
+| Steam Trophies | Utilities | [lydia1204/SteamTrophies](https://github.com/lydia1204/SteamTrophies) |
+| X360 Receiver | Controllers | [boettgi14/X360-Receiver](https://github.com/boettgi14/X360-Receiver) |
+| Notification Sender | Utilities | [4hd88/NotificationSender](https://github.com/4hd88/NotificationSender) |
+| InsertPlay | Game Libraries | [insert-play/insertplay](https://github.com/insert-play/insertplay) |
+| Legion Go S Control | Performance | [alexjm19/legion-go-s-control](https://github.com/alexjm19/legion-go-s-control) |
+| DiscordChats | Utilities | [alb3rtov/SDH-DiscordChats](https://github.com/alb3rtov/SDH-DiscordChats) |
+| OXP3Deck | Utilities | [Featherwolf/OXP3Deck](https://github.com/Featherwolf/OXP3Deck) |
+| Game Library | Controllers | [Viber85/game-library](https://github.com/Viber85/game-library) |
+| Boiler S2-S4 switcher | Utilities | [FlightDan/SteamOS-S2-S4-switcher](https://github.com/FlightDan/SteamOS-S2-S4-switcher) |
+| TrainerManager | Mod Managers | [yzi111/steam-deck-trainer-manager](https://github.com/yzi111/steam-deck-trainer-manager) |
+| Orbiter | Utilities | [ozanmutludursun/Orbiter](https://github.com/ozanmutludursun/Orbiter) |
+| MSI Claw A8 Controller Suite | Controllers | [sekirofly/msi-claw-a8-controller-suite](https://github.com/sekirofly/msi-claw-a8-controller-suite) |
+| DeckClip | Utilities | [ryudo261276/DeckClip](https://github.com/ryudo261276/DeckClip) |
+| ROM Shelf | Game Libraries | [ygordreyer/romshelf](https://github.com/ygordreyer/romshelf) |
+| Traction | Controllers | [musika08/traction](https://github.com/musika08/traction) |
+| NetCEC | Utilities | [MSPortnov/NetCEC](https://github.com/MSPortnov/NetCEC) |
+| DeckGram | Utilities | [bodia229/DeckGram](https://github.com/bodia229/DeckGram) |
+| Pitwall | Utilities | [crspytopgn/pitwall](https://github.com/crspytopgn/pitwall) |
+| FSR-KingSteam | Frame Generation | [PedroReyVarela/FSR-KingSteam](https://github.com/PedroReyVarela/FSR-KingSteam) |
+| Finally Game Recorder | Utilities | [otisabiburada/finally-game-replay-recorder](https://github.com/otisabiburada/finally-game-replay-recorder) |
+| NieRDeck | Customization | [Farfaboulette7/NieR-UI](https://github.com/Farfaboulette7/NieR-UI) |
+| ActivityHide | Game Libraries | [weristvlad/activityhide](https://github.com/weristvlad/activityhide) |
+| NonSteamLaunchers | Launch Options | [davnozdu/NonSteamLaunchersDecky](https://github.com/davnozdu/NonSteamLaunchersDecky) |
+| Decky XeSS XMX | Frame Generation | [yoyossef/decky-xess-xmx-linux](https://github.com/yoyossef/decky-xess-xmx-linux) |
+| Discord Status Relay | Utilities | [chino/decky-discord-status-relay](https://github.com/chino/decky-discord-status-relay) |
+| X20 Power | Performance | [kdryja/x20-power](https://github.com/kdryja/x20-power) |
+| glidekm | Utilities | [diasna/glidekm](https://github.com/diasna/glidekm) |
+| DeckHub | Game Libraries | [lnavarrocarter/deckhub](https://github.com/lnavarrocarter/deckhub) |
+| Steam Shaders | Utilities | [RonyNjr/SteamCompShaderUI](https://github.com/RonyNjr/SteamCompShaderUI) |
+| Decky My Rig | Utilities | [NekoGryphou/decky-my-rig](https://github.com/NekoGryphou/decky-my-rig) |
+| Veckord | Controllers | [mattytacos/veckord](https://github.com/mattytacos/veckord) |
+| Value Forge | Controllers | [timekillr/value-forge-decky](https://github.com/timekillr/value-forge-decky) |
+| DeckMate | Controllers | [Bwlazelek/deckmate](https://github.com/Bwlazelek/deckmate) |
+| Wake PC | Utilities | [patrickshao/wake-pc](https://github.com/patrickshao/wake-pc) |
+| Decky FrameGen Hub | Frame Generation | [davnozdu/Decky-FrameGen-Hub](https://github.com/davnozdu/Decky-FrameGen-Hub) |
+| Decky POE Launcher | Utilities | [sunim87/decky-poe-launcher](https://github.com/sunim87/decky-poe-launcher) |
+| Rootless Dictation | Utilities | [nevergiveup777/rootless-dictation](https://github.com/nevergiveup777/rootless-dictation) |
+| 8BitDo Deck | Controllers | [trevor-scheer/8bitdo-deck](https://github.com/trevor-scheer/8bitdo-deck) |
+| Screen Scale | Utilities | [Nasenmann80/Screen-Scale](https://github.com/Nasenmann80/Screen-Scale) |
 
 ## Where the plugins come from
 
