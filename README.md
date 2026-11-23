@@ -1082,6 +1082,8 @@ python scripts/build_decky_store.py releases.json out/store
 | Non-Steam Matcher | Game Libraries | [tmghd272/decky-non-steam-matcher](https://github.com/tmghd272/decky-non-steam-matcher) |
 | DiscDeck | Controllers | [zany130/DiscDeck](https://github.com/zany130/DiscDeck) |
 | Native Home | Customization | [qualbyyy/decky-native-home](https://github.com/qualbyyy/decky-native-home) |
+| Decky Claude | Utilities | [mooseses/decky-claude](https://github.com/mooseses/decky-claude) |
+| Claw Rumble Fix | Controllers | [tinghaishijie/claw-rumble-fix](https://github.com/tinghaishijie/claw-rumble-fix) |
 
 ## Where the plugins come from
 
