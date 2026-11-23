@@ -9110,6 +9110,24 @@
       "category": "Customization",
       "detect": { "type": "decky-plugin", "names": ["Native Home"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "mooseses-decky-claude",
+      "name": "Decky Claude",
+      "description": "Run Claude Code from Game Mode: Remote Control from your phone or claude.ai/code, an on-screen session, past chats, and keep-screen-on.",
+      "repo": "mooseses/decky-claude",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Decky Claude"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "claw-rumble-fix",
+      "name": "Claw Rumble Fix",
+      "description": "Restores rumble on the MSI Claw A8 built-in controller after suspend/resume, without an EC reset.",
+      "repo": "tinghaishijie/claw-rumble-fix",
+      "category": "Controllers",
+      "detect": { "type": "decky-plugin", "names": ["Claw Rumble Fix"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
