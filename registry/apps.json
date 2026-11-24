@@ -9128,6 +9128,42 @@
       "category": "Controllers",
       "detect": { "type": "decky-plugin", "names": ["Claw Rumble Fix"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "greenscaler",
+      "name": "GreenScaler",
+      "description": "Instala e mantém atualizado o OptiScaler com ANR FG (Apex Neural Rendering) nos jogos Proton, com FSR 4 por padrão.",
+      "repo": "vaporgreen/GreenScaler",
+      "category": "Frame Generation",
+      "detect": { "type": "decky-plugin", "names": ["GreenScaler"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "esde-to-steam",
+      "name": "ES-DE to Steam",
+      "description": "Mirror an ES-DE custom collection as Steam library shortcuts.",
+      "repo": "geekexile/esde-to-steam",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["ES-DE to Steam"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "button-glyphs",
+      "name": "Button Glyphs",
+      "description": "Swap in-game button prompts to PlayStation or Xbox style, keep a backup of the original files and re-apply after game updates.",
+      "repo": "evertonfxavier/button-glyphs",
+      "category": "Controllers",
+      "detect": { "type": "decky-plugin", "names": ["Button Glyphs"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-mihomo",
+      "name": "Decky Mihomo",
+      "description": "Import Clash/Mihomo subscriptions, check node health and switch locations from Steam Deck Game Mode.",
+      "repo": "tishelka/decky-mihomo",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Decky Mihomo"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
