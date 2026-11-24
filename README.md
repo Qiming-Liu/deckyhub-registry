@@ -1082,11 +1082,12 @@ python scripts/build_decky_store.py releases.json out/store
 | Non-Steam Matcher | Game Libraries | [tmghd272/decky-non-steam-matcher](https://github.com/tmghd272/decky-non-steam-matcher) |
 | DiscDeck | Controllers | [zany130/DiscDeck](https://github.com/zany130/DiscDeck) |
 | Native Home | Customization | [qualbyyy/decky-native-home](https://github.com/qualbyyy/decky-native-home) |
-| GreenScaler | Frame Generation | [vaporgreen/GreenScaler](https://github.com/vaporgreen/GreenScaler) |
-| ES-DE to Steam | Game Libraries | [geekexile/esde-to-steam](https://github.com/geekexile/esde-to-steam) |
-| Decky Mihomo | Utilities | [tishelka/decky-mihomo](https://github.com/tishelka/decky-mihomo) |
 | Decky Claude | Utilities | [mooseses/decky-claude](https://github.com/mooseses/decky-claude) |
 | Claw Rumble Fix | Controllers | [tinghaishijie/claw-rumble-fix](https://github.com/tinghaishijie/claw-rumble-fix) |
+| GreenScaler | Frame Generation | [vaporgreen/GreenScaler](https://github.com/vaporgreen/GreenScaler) |
+| ES-DE to Steam | Game Libraries | [geekexile/esde-to-steam](https://github.com/geekexile/esde-to-steam) |
+| Button Glyphs | Controllers | [evertonfxavier/button-glyphs](https://github.com/evertonfxavier/button-glyphs) |
+| Decky Mihomo | Utilities | [tishelka/decky-mihomo](https://github.com/tishelka/decky-mihomo) |
 
 ## Where the plugins come from
 

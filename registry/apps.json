@@ -9112,6 +9112,24 @@
       "asset": { "include": [".zip"], "exclude": ["source"] }
     },
     {
+      "id": "mooseses-decky-claude",
+      "name": "Decky Claude",
+      "description": "Run Claude Code from Game Mode: Remote Control from your phone or claude.ai/code, an on-screen session, past chats, and keep-screen-on.",
+      "repo": "mooseses/decky-claude",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Decky Claude"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "claw-rumble-fix",
+      "name": "Claw Rumble Fix",
+      "description": "Restores rumble on the MSI Claw A8 built-in controller after suspend/resume, without an EC reset.",
+      "repo": "tinghaishijie/claw-rumble-fix",
+      "category": "Controllers",
+      "detect": { "type": "decky-plugin", "names": ["Claw Rumble Fix"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
       "id": "greenscaler",
       "name": "GreenScaler",
       "description": "Instala e mantém atualizado o OptiScaler com ANR FG (Apex Neural Rendering) nos jogos Proton, com FSR 4 por padrão.",
@@ -9130,30 +9148,21 @@
       "asset": { "include": [".zip"], "exclude": ["source"] }
     },
     {
+      "id": "button-glyphs",
+      "name": "Button Glyphs",
+      "description": "Swap in-game button prompts to PlayStation or Xbox style, keep a backup of the original files and re-apply after game updates.",
+      "repo": "evertonfxavier/button-glyphs",
+      "category": "Controllers",
+      "detect": { "type": "decky-plugin", "names": ["Button Glyphs"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
       "id": "decky-mihomo",
       "name": "Decky Mihomo",
       "description": "Import Clash/Mihomo subscriptions, check node health and switch locations from Steam Deck Game Mode.",
       "repo": "tishelka/decky-mihomo",
       "category": "Utilities",
       "detect": { "type": "decky-plugin", "names": ["Decky Mihomo"] },
-      "asset": { "include": [".zip"], "exclude": ["source"] }
-    },
-    {
-      "id": "mooseses-decky-claude",
-      "name": "Decky Claude",
-      "description": "Run Claude Code from Game Mode: Remote Control from your phone or claude.ai/code, an on-screen session, past chats, and keep-screen-on.",
-      "repo": "mooseses/decky-claude",
-      "category": "Utilities",
-      "detect": { "type": "decky-plugin", "names": ["Decky Claude"] },
-      "asset": { "include": [".zip"], "exclude": ["source"] }
-    },
-    {
-      "id": "claw-rumble-fix",
-      "name": "Claw Rumble Fix",
-      "description": "Restores rumble on the MSI Claw A8 built-in controller after suspend/resume, without an EC reset.",
-      "repo": "tinghaishijie/claw-rumble-fix",
-      "category": "Controllers",
-      "detect": { "type": "decky-plugin", "names": ["Claw Rumble Fix"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
