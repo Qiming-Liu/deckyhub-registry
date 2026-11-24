@@ -9165,6 +9165,15 @@
       "category": "Utilities",
       "detect": { "type": "decky-plugin", "names": ["Decky Mihomo"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-claude-voice",
+      "name": "Claude Voice",
+      "description": "Voice-dictated Claude Code assistant in the Quick Access Menu, with on-screen approval for every action.",
+      "repo": "o-raskin/decky-claude-voice",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Claude Voice"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }

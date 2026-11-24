@@ -1088,6 +1088,7 @@ python scripts/build_decky_store.py releases.json out/store
 | ES-DE to Steam | Game Libraries | [geekexile/esde-to-steam](https://github.com/geekexile/esde-to-steam) |
 | Button Glyphs | Controllers | [evertonfxavier/button-glyphs](https://github.com/evertonfxavier/button-glyphs) |
 | Decky Mihomo | Utilities | [tishelka/decky-mihomo](https://github.com/tishelka/decky-mihomo) |
+| Claude Voice | Utilities | [o-raskin/decky-claude-voice](https://github.com/o-raskin/decky-claude-voice) |
 
 ## Where the plugins come from
 
