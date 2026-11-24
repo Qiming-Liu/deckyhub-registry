@@ -1082,6 +1082,12 @@ python scripts/build_decky_store.py releases.json out/store
 | Non-Steam Matcher | Game Libraries | [tmghd272/decky-non-steam-matcher](https://github.com/tmghd272/decky-non-steam-matcher) |
 | DiscDeck | Controllers | [zany130/DiscDeck](https://github.com/zany130/DiscDeck) |
 | Native Home | Customization | [qualbyyy/decky-native-home](https://github.com/qualbyyy/decky-native-home) |
+| Decky Claude | Utilities | [mooseses/decky-claude](https://github.com/mooseses/decky-claude) |
+| Claw Rumble Fix | Controllers | [tinghaishijie/claw-rumble-fix](https://github.com/tinghaishijie/claw-rumble-fix) |
+| GreenScaler | Frame Generation | [vaporgreen/GreenScaler](https://github.com/vaporgreen/GreenScaler) |
+| ES-DE to Steam | Game Libraries | [geekexile/esde-to-steam](https://github.com/geekexile/esde-to-steam) |
+| Button Glyphs | Controllers | [evertonfxavier/button-glyphs](https://github.com/evertonfxavier/button-glyphs) |
+| Decky Mihomo | Utilities | [tishelka/decky-mihomo](https://github.com/tishelka/decky-mihomo) |
 
 ## Where the plugins come from
 
@@ -1153,7 +1159,7 @@ CI runs on every pull request, on pushes to `main` and `develop`, and weekly bec
   GITHUB_TOKEN=$(gh auth token) python scripts/validate.py
   ```
 - **Website:** everything is on deckyhub.com, built by mazillka/deckyhub-plugin: the [plugins](https://deckyhub.com/plugins/), [how to contribute](https://deckyhub.com/contribute/) and the [registry editor](https://deckyhub.com/contribute/editor.html). This repository has no website of its own.
-- **Tests:** `python -m unittest discover -s tests` covers the scripts, and also checks that `apps.json` stays under the 512 KB DeckyHub 3.0.0 and older accept, that the catalog page's script parses, and that `stats.json` keeps every field and warning the DeckyHub people run reads (against deckyhub-plugin's `main`, which CI checks out).
+- **Tests:** `python -m unittest discover -s tests` covers the scripts, and also checks that `apps.json` stays well under the 4 MB DeckyHub accepts (3.0.0 and older, which stopped at 512 KB, are no longer kept in step), that the catalog page's script parses, and that `stats.json` keeps every field and warning the DeckyHub people run reads (against deckyhub-plugin's `main`, which CI checks out).
 
 ## Taking a plugin off DeckyHub, or sending it to the Decky store
 
