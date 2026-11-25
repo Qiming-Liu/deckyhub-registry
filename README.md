@@ -1097,6 +1097,12 @@ python scripts/build_decky_store.py releases.json out/store
 | Right Stick Navigation | Utilities | [dimmujed/Right-Stick-Navigation](https://github.com/dimmujed/Right-Stick-Navigation) |
 | Gaugeshift | Utilities | [murphmar/decky-gaugeshift](https://github.com/murphmar/decky-gaugeshift) |
 | Collections Shortcut | Game Libraries | [JDLKMR/Decky-Collections-Shortcut](https://github.com/JDLKMR/Decky-Collections-Shortcut) |
+| WoW Splash | Launch Options | [AstroPhyzix/wow-splash](https://github.com/AstroPhyzix/wow-splash) |
+| Skip Launcher | Controllers | [evertonfxavier/skip-launcher](https://github.com/evertonfxavier/skip-launcher) |
+| Decky Yomi | Utilities | [Apex-94/decky-yomi](https://github.com/Apex-94/decky-yomi) |
+| DeckyDSH | Utilities | [Qiming-Liu/DeckyDSH](https://github.com/Qiming-Liu/DeckyDSH) |
+| SaveTether | Utilities | [carlocgc/SaveTether-Decky](https://github.com/carlocgc/SaveTether-Decky) |
+| Library Doctor | Game Libraries | [nch0083/decky-library-doctor](https://github.com/nch0083/decky-library-doctor) |
 
 ## Where the plugins come from
 
