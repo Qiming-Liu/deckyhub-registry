@@ -9178,7 +9178,7 @@
     {
       "id": "creamdeck",
       "name": "CreamDeck",
-      "description": "Select an installed Steam game from its library context menu and unlock its DLC (SmokeAPI/CreamAPI), directly on the Steam Deck.",
+      "description": "Unlocks DLC for installed Steam games with SmokeAPI or CreamAPI, from the library context menu.",
       "repo": "Qiming-Liu/CreamDeck",
       "category": "Game Libraries",
       "detect": { "type": "decky-plugin", "names": ["CreamDeck"] },
@@ -9187,7 +9187,7 @@
     {
       "id": "decky-game-cheats-manager",
       "name": "DeckyGCM",
-      "description": "Search and download game trainers from Game Cheats Manager's catalog (FLiNG, XiaoXing, Cheat Tables, GCM), from the Quick Access menu or...",
+      "description": "Searches and downloads game trainers, sideloads them with games, and manages launch options.",
       "repo": "Qiming-Liu/Decky-Game-Cheats-Manager",
       "category": "Game Libraries",
       "detect": { "type": "decky-plugin", "names": ["DeckyGCM"] },
