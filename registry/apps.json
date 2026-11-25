@@ -9174,6 +9174,60 @@
       "category": "Utilities",
       "detect": { "type": "decky-plugin", "names": ["Claude Voice"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "creamdeck",
+      "name": "CreamDeck",
+      "description": "Select an installed Steam game from its library context menu and unlock its DLC (SmokeAPI/CreamAPI), directly on the Steam Deck.",
+      "repo": "Qiming-Liu/CreamDeck",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["CreamDeck"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-game-cheats-manager",
+      "name": "DeckyGCM",
+      "description": "Search and download game trainers from Game Cheats Manager's catalog (FLiNG, XiaoXing, Cheat Tables, GCM), from the Quick Access menu or...",
+      "repo": "Qiming-Liu/Decky-Game-Cheats-Manager",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["DeckyGCM"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "escaladores",
+      "name": "Escaladores",
+      "description": "Escalado y generación de frames por juego: OptiScaler, Lossless Scaling, Mako y recetas por juego.",
+      "repo": "Nicothyna/Escaladores",
+      "category": "Frame Generation",
+      "detect": { "type": "decky-plugin", "names": ["Escaladores"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "uber-watch",
+      "name": "Uber Watch",
+      "description": "Pause or resume the model watchdog, unload and reload the local model, and choose whether cut-off sessions resume by themselves.",
+      "repo": "ubermoc/Uber-Watch",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Uber Watch"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-cover-overlayer",
+      "name": "Cover Overlayer",
+      "description": "A Decky Loader plugin that lets you overlay a PNG template (such as a game case) onto the cover art of every game in a Steam collection.",
+      "repo": "JDLKMR/Decky-Cover-Overlayer",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["Cover Overlayer"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "right-stick-navigation",
+      "name": "Right Stick Navigation",
+      "description": "Navigate the Steam Deck interface with the right stick.",
+      "repo": "dimmujed/Right-Stick-Navigation",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Right Stick Navigation"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
