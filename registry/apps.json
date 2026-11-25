@@ -9189,7 +9189,7 @@
       "name": "DeckyGCM",
       "description": "Searches and downloads game trainers, sideloads them with games, and manages launch options.",
       "repo": "Qiming-Liu/Decky-Game-Cheats-Manager",
-      "category": "Utilities",
+      "category": "Game Libraries",
       "detect": { "type": "decky-plugin", "names": ["DeckyGCM"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
     },
