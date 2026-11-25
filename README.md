@@ -1095,6 +1095,8 @@ python scripts/build_decky_store.py releases.json out/store
 | Uber Watch | Utilities | [ubermoc/Uber-Watch](https://github.com/ubermoc/Uber-Watch) |
 | Cover Overlayer | Game Libraries | [JDLKMR/Decky-Cover-Overlayer](https://github.com/JDLKMR/Decky-Cover-Overlayer) |
 | Right Stick Navigation | Utilities | [dimmujed/Right-Stick-Navigation](https://github.com/dimmujed/Right-Stick-Navigation) |
+| Gaugeshift | Utilities | [murphmar/decky-gaugeshift](https://github.com/murphmar/decky-gaugeshift) |
+| Collections Shortcut | Game Libraries | [JDLKMR/Decky-Collections-Shortcut](https://github.com/JDLKMR/Decky-Collections-Shortcut) |
 
 ## Where the plugins come from
 

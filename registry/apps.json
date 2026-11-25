@@ -9228,6 +9228,24 @@
       "category": "Utilities",
       "detect": { "type": "decky-plugin", "names": ["Right Stick Navigation"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-gaugeshift",
+      "name": "Gaugeshift",
+      "description": "Per-device game resolution for Remote Play and Steam Link.",
+      "repo": "murphmar/decky-gaugeshift",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Gaugeshift"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-collections-shortcut",
+      "name": "Collections Shortcut",
+      "description": "Adds a Collections tab to the Steam Menu.",
+      "repo": "JDLKMR/Decky-Collections-Shortcut",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["Collections Shortcut"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
