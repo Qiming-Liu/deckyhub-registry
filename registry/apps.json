@@ -9246,6 +9246,60 @@
       "category": "Game Libraries",
       "detect": { "type": "decky-plugin", "names": ["Collections Shortcut"] },
       "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "wow-splash",
+      "name": "WoW Splash",
+      "description": "Launch World of Warcraft Forever straight from Steam behind a full-screen loading screen that hides the Proton console and Battle.net...",
+      "repo": "AstroPhyzix/wow-splash",
+      "category": "Launch Options",
+      "detect": { "type": "decky-plugin", "names": ["WoW Splash"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "skip-launcher",
+      "name": "Skip Launcher",
+      "description": "Start games that open a Windows launcher window straight into the game, and change that window's settings from the Deck with a controller.",
+      "repo": "evertonfxavier/skip-launcher",
+      "category": "Controllers",
+      "detect": { "type": "decky-plugin", "names": ["Skip Launcher"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-yomi",
+      "name": "Decky Yomi",
+      "description": "Decky Loader plugin for reading Japanese text in Steam Deck games with local OCR and dictionary lookups.",
+      "repo": "Apex-94/decky-yomi",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["Decky Yomi"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "deckydsh",
+      "name": "DeckyDSH",
+      "description": "Run the DeepSeek Harness (dsh) agent from the Quick Access menu: chat by voice or text, with per-chat approval control.",
+      "repo": "Qiming-Liu/DeckyDSH",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["DeckyDSH"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "savetether-decky",
+      "name": "SaveTether",
+      "description": "Shows the health of SaveTether's save folder links in Game Mode.",
+      "repo": "carlocgc/SaveTether-Decky",
+      "category": "Utilities",
+      "detect": { "type": "decky-plugin", "names": ["SaveTether"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
+    },
+    {
+      "id": "decky-library-doctor",
+      "name": "Library Doctor",
+      "description": "Manage large non-Steam libraries: broken/duplicate shortcuts, orphan folders, storage usage, and safe cleanup.",
+      "repo": "nch0083/decky-library-doctor",
+      "category": "Game Libraries",
+      "detect": { "type": "decky-plugin", "names": ["Library Doctor"] },
+      "asset": { "include": [".zip"], "exclude": ["source"] }
     }
   ]
 }
